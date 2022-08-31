@@ -26,7 +26,18 @@ bool uInt::operator<(const uInt &A) const
     return false;
 }
 
-uInt uInt::add(const uInt &A) const // *this > A
+bool uInt::between(const uInt &A, const uInt &B, bool includeA, bool includeB) const
+{
+    if (includeA && !includeB)
+        return operator>=(A) && operator<(B); // A <= x < B
+    else if (includeA && includeB)
+        return operator>=(A) && operator<=(B); // A <= x <= B
+    else if (!includeA && !includeB)
+        return operator>(A) && operator<(B); // A < x < B
+    return operator>(A) && operator<=(B);    // A < x <= B
+}
+
+uInt uInt::add(const uInt &A) const
 {
     vector<unit> sum(num.size());
     unit carry = 0;
@@ -39,9 +50,9 @@ uInt uInt::add(const uInt &A) const // *this > A
     return uInt(sum);
 }
 
-uInt uInt::operator-(const uInt &A) const // *this > A
+uInt uInt::operator-(const uInt &A) const
 {
-    vector<unit> diff(num.size());
+    vector<unit> diff(num.size()); // difference
     bool carry = false;
     for (unsigned i = 0; i < A.num.size(); ++i)
         diff[i] = suber(num[i], A.num[i], carry);
@@ -56,7 +67,7 @@ uInt uInt::operator-(const uInt &A) const // *this > A
 
 uInt uInt::operator*(const uInt &A) const
 {
-    vector<unit> prod(num.size() + A.num.size(), 0);
+    vector<unit> prod(num.size() + A.num.size(), 0); // production
     unit carry;
     for (unsigned i = 0; i < A.num.size(); ++i)
     {
@@ -71,9 +82,19 @@ uInt uInt::operator*(const uInt &A) const
     return uInt(prod);
 }
 
+uInt uInt::operator/(const uInt &A) const
+{
+    vector<unit> quot(num.size() - A.num.size() + 1, 0); // quotient
+    unit carry;
+    for (int i = quot.size() - 1; i >= 0; --i)
+    {
+    }
+    return uInt(quot);
+}
+
 uInt uInt::operator^(const uInt &A) const
 {
-    uInt i, expo = *this;
+    uInt i, expo = *this; // exponent
     for (i = 1; i < exp2fit(A); i *= 2)
         expo *= expo; // quick
     for (; i < A; ++i)
@@ -81,23 +102,35 @@ uInt uInt::operator^(const uInt &A) const
     return expo;
 }
 
-ostream &operator<<(ostream &out, const uInt &A)
+ostream &operator<<(ostream &os, const uInt &A)
 {
-    out << *A.num.rbegin();
+    os << *A.num.rbegin();
     for (auto part = A.num.rbegin() + 1; part != A.num.rend(); ++part)
-        out << ',' << setfill('0') << setw(uInt::LEN) << *part;
-    return out;
+        os << ',' << setfill('0') << setw(uInt::LEN) << *part;
+    return os;
 }
 
-string uInt::toString() const
+istream &operator>>(istream &is, uInt &A)
 {
-    string str = to_string(num.back()), subNum;
-    for (auto part = num.rbegin() + 1; part != num.rend(); ++part)
+    string str;
+    is >> str;
+    A = uInt(str);
+    return is;
+}
+
+string uInt::toString(unsigned base) const
+{
+    // if (base == 10)
     {
-        subNum = to_string(*part);
-        str += string(LEN - subNum.length(), '0') + subNum;
+        string str = to_string(num.back()), subNum;
+        for (auto part = num.rbegin() + 1; part != num.rend(); ++part)
+        {
+            subNum = to_string(*part);
+            str += string(LEN - subNum.length(), '0') + subNum;
+        }
+        return str;
     }
-    return str;
+    static const char alphaBeta[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 }
 
 uInt exp2fit(const uInt &A)

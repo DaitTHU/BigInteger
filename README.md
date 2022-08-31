@@ -16,51 +16,74 @@ You can create a `uInt` object by `int`, `char*` and `string`:
 
 ```cpp
 uInt a = 65472;
-uInt b = "12345678910111213";
-uInt c = b;
-std::cin >> c;
+uInt b("1234567891011121314151617181920"); // only digits allowed
+// uInt b = "1234567891011121314151617181920"; // cause error
+uInt c = b, d;
+std::cout << "You can also input the number you want: ";
+std::cin >> d;
 ```
-
-`uInt` calculation is intuitive:
+`uInt`s are comparable. If you perfer `a < x < b` like `python`, you can use `uInt::between`!
 
 ```cpp
-uInt d = a + b;
-d -= 100;
-uInt e = c * d;
-e /= 114514;
-uInt f = e^4; // exponentiation
-std::cout << f << std::endl;
+std::cout << "d > 10000? " << (d > 10000) << std::endl;
+std::cout << "a <= d < b? " << d.between(a, b) << std::endl;
 ```
 
-`uInt::toString()` returns the number in `string` format.
+calculate is trivial.
 
-`log2(uInt A)` returns `floor(log2(A))`.
+```cpp
+uInt e = a + b; // 1234567891011121314151617247392
+e -= 100;       // 1234567891011121314151617247292
+uInt f = c * d;
+b /= uInt(1145141919810); // 1078091605637804892
+uInt g = b^3;             // exponentiation, e.g. 2^4 = 16.
+std::cout << g << std::endl; 
+// 1,253045939,477188663,853722164,624612006,875048962,971300288
+```
+and many related functions are provided
 
-`exp2fit(uInt A)` returns the max `2^n` that `<= A`.
+```cpp
+// uInt::toString(base = 10) returns the number in `string` format.
+std::cout << g.toString() << std::endl; 
+// 1253045939477188663853722164624612006875048962971300288
 
-`digit(uInt A)` returns the number of digit of `A`.
+// log2(A) returns the max `n` that `2^n <= A`.
+std::cout << log2(g) << std::endl;
+// 179
 
+// exp2fit(A) returns the max `2^n` that `<= A`.
+std::cout << exp2fit(g) << std::endl;
+// 766247770,432944429,179173513,575154591,809369561,091801088
+
+// digit(A) returns the number of digit of `A`.
+std::cout << digit(g) << std::endl;
+// 55
+```
 more functions to be continued...
 
-### `Int` class
+### `Int` class (unfinished)
 
 almost same as `uInt` class, adding a sign.
 
-### `Fraction` class
+### `Fraction` class (unfinished)
 
 consisting of `Int` numerator and `uInt` denominator, also, you can create a `Fraction` object by `int`, `double`, `string`...
 
 (quiet like `python Fraction package`...)
 
-### `Real` class
+### `Real` class (unfinished)
 
 consisting of `Int` as the integer part and `vector<int>` as the decimal part.
 
-### `Complex` class
+### `Complex` class (unfinished)
 
 consisting of two `Real` as the real part and imaginary part.
 
-## details in `bigNumGen.h`
+### `Polynomial` class (unfinished)
+
+consisting of multiple `Real` coefficients.
+
+## details in `bigNumGen.h` (unfinished)
 
 this `.h` has some functions to create numbers that extremely buge, such as `1000!`, 100000th Fibonacci numbers.
 
@@ -70,9 +93,8 @@ With these `.h`s you can easily see how big `1000!` is:
 
 ```cpp
 #include "bigNumGen.h"
-using namespace std;
 
-cout << factorial(1000) << endl;
+std::cout << factorial(1000) << std::endl;
 
 >>> 402,387260077,093773543,...,000000000 // I oimt 2538 digits!
 ```
