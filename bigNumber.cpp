@@ -1,4 +1,4 @@
-#include "myNumber.h"
+#include "bigMath.h"
 using namespace std;
 
 uInt::uInt(const string &_num)
@@ -14,6 +14,12 @@ uInt::uInt(const string &_num)
     for (pos = _num.length() - LEN; pos > 0; pos -= LEN)
         num.push_back(stoi(_num.substr(pos, LEN)));
     num.push_back(stoi(_num.substr(0, pos + LEN)));
+}
+
+uInt &uInt::operator=(const uInt &A)
+{
+    num = A.num;
+    return *this;
 }
 
 bool uInt::operator<(const uInt &A) const
@@ -35,19 +41,6 @@ bool uInt::between(const uInt &A, const uInt &B, bool includeA, bool includeB) c
     else if (!includeA && !includeB)
         return operator>(A) && operator<(B); // A < x < B
     return operator>(A) && operator<=(B);    // A < x <= B
-}
-
-uInt uInt::add(const uInt &A) const
-{
-    vector<unit> sum(num.size());
-    unit carry = 0;
-    for (unsigned i = 0; i < A.num.size(); ++i)
-        sum[i] = adder(num[i], A.num[i], carry);
-    for (unsigned i = A.num.size(); i < num.size(); ++i)
-        sum[i] = adder(num[i], 0, carry);
-    if (carry > 0)
-        sum.push_back(carry);
-    return uInt(sum);
 }
 
 uInt uInt::operator-(const uInt &A) const
@@ -82,14 +75,17 @@ uInt uInt::operator*(const uInt &A) const
     return uInt(prod);
 }
 
-uInt uInt::operator/(const uInt &A) const
+pair<uInt, uInt> uInt::divmod(const uInt &A) const
 {
+    assert(A > 0);
     vector<unit> quot(num.size() - A.num.size() + 1, 0); // quotient
-    unit carry;
+    unit remainder;
     for (int i = quot.size() - 1; i >= 0; --i)
     {
+        while (A * quot < 0)
+            ++quot[i];
     }
-    return uInt(quot);
+    return pair<uInt, uInt>(quot, remainder);
 }
 
 uInt uInt::operator^(const uInt &A) const
@@ -133,34 +129,16 @@ string uInt::toString(unsigned base) const
     static const char alphaBeta[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 }
 
-uInt exp2fit(const uInt &A)
+uInt uInt::sub(unsigned begin, unsigned end) const
 {
-    if (A == 0)
-        return uInt(0);
-    uInt expo = 1;
-    while (true)
-    {
-        uInt doubleExpo = 2 * expo;
-        if (doubleExpo > A)
-            return expo;
-        expo = move(doubleExpo);
-    }
+    auto back = (end <= num.size() ? num.begin() + end : num.end());
+    return uInt(vector<unit>(num.begin() + begin, back));
 }
 
-uInt log2(const uInt &A)
+uInt uInt::length(unsigned base) const
 {
-    if (A == 0)
-        return uInt(0);
-    uInt power = 0;
-    for (uInt expo = 1; expo <= A; expo *= 2)
-        ++power;
-    return power - 1;
-}
-
-uInt digit(const uInt &A)
-{
-    uInt digit = uInt::LEN * (A.num.size() - 1);
-    for (uInt expo = 1; expo <= A.num.back(); expo *= 10)
-        ++digit;
-    return digit;
+    uInt len = LEN * (num.size() - 1);
+    for (uInt expo = 1; expo <= num.back(); expo *= 10)
+        ++len;
+    return len;
 }

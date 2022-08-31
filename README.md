@@ -47,6 +47,10 @@ and many related functions are provided
 std::cout << g.toString() << std::endl; 
 // 1253045939477188663853722164624612006875048962971300288
 
+// uInt::length(base = 10) returns the number of digit of `A`.
+std::cout << g.length() << std::endl;
+// 55
+
 // log2(A) returns the max `n` that `2^n <= A`.
 std::cout << log2(g) << std::endl;
 // 179
@@ -54,10 +58,6 @@ std::cout << log2(g) << std::endl;
 // exp2fit(A) returns the max `2^n` that `<= A`.
 std::cout << exp2fit(g) << std::endl;
 // 766247770,432944429,179173513,575154591,809369561,091801088
-
-// digit(A) returns the number of digit of `A`.
-std::cout << digit(g) << std::endl;
-// 55
 ```
 more functions to be continued...
 
