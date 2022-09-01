@@ -1,6 +1,7 @@
 #ifndef BIG_NUMBER_H_
 #define BIG_NUMBER_H_
 #include <iostream>
+// #include <fstream>
 #include <vector>
 #include <string>
 #include <utility>
@@ -22,7 +23,7 @@ public:
 	uInt(const unit &_num) { num.push_back(_num); }
 	uInt(const std::vector<unit> &_num) : num(_num) {}
 	uInt(const std::string &_num);
-	uInt(const uInt &A) = default;
+	uInt(const uInt &A) : num(A.num) {}
 	uInt(uInt &&A) = default;
 	~uInt() = default;
 	// assignment
@@ -34,7 +35,6 @@ public:
 	bool operator<=(const uInt &A) const { return !operator>(A); }
 	bool operator>=(const uInt &A) const { return !operator<(A); }
 	bool operator!=(const uInt &A) const { return !operator==(A); }
-	bool between(const uInt &A, const uInt &B, bool includeA = true, bool includeB = false) const;
 	// unary arithmetic
 	uInt operator+() = delete;
 	uInt operator-() = delete;
@@ -42,16 +42,27 @@ public:
 	template <typename T>
 	explicit operator T() const { return num[0]; }
 	// binary arithmetic
-	uInt operator+(const uInt &A) const { return num.size() > A.num.size() ? lAdd(A) : A.lAdd(*this); }
+	uInt operator+(const uInt &A) const { return size() > A.size() ? lAdd(A) : A.lAdd(*this); }
 	uInt operator-(const uInt &A) const;
 	uInt operator*(const uInt &A) const; // O(n^2)
 	uInt operator/(const uInt &A) const { return divmod(A).first; }
 	uInt operator%(const uInt &A) const { return divmod(A).second; }
 	uInt operator^(const uInt &A) const;
-	std::pair<uInt, uInt> divmod(const uInt &A) const;
 	uInt operator&(const uInt &A) const = delete;
 	uInt operator|(const uInt &A) const = delete;
-	unit &operator[](const unit &i) const = delete;
+	// right relational
+	template <typename T>
+	friend bool operator<(const T _num, const uInt &A) { return A > _num; }
+	template <typename T>
+	friend bool operator>(const T _num, const uInt &A) { return A < _num; }
+	template <typename T>
+	friend bool operator==(const T _num, const uInt &A) { return A == _num; }
+	template <typename T>
+	friend bool operator<=(const T _num, const uInt &A) { return A >= _num; }
+	template <typename T>
+	friend bool operator>=(const T _num, const uInt &A) { return A <= _num; }
+	template <typename T>
+	friend bool operator!=(const T _num, const uInt &A) { return A != _num; }
 	// right binary arithmetic
 	template <typename T>
 	friend uInt operator+(const T _num, const uInt &A) { return A + _num; }
@@ -71,24 +82,37 @@ public:
 	uInt &operator*=(const uInt &A) { return *this = *this * A; }
 	uInt &operator/=(const uInt &A) { return *this = *this / A; }
 	uInt &operator%=(const uInt &A) { return *this = *this % A; }
-	uInt operator^=(const uInt &A) { return *this = *this ^ A; }
+	uInt &operator^=(const uInt &A) { return *this = *this ^ A; }
 	// ++/--
 	uInt operator++() { return (*this += 1); }
+	uInt operator++(int) { return (*this += 1); } // may change, i don't konw.
 	uInt operator--() { return (*this -= 1); }
+	uInt operator--(int) { return (*this -= 1); }
 	// I/O stream
 	friend std::ostream &operator<<(std::ostream &os, const uInt &A);
 	friend std::istream &operator>>(std::istream &is, uInt &A);
+	static void setDelimiter(const char &_c, const unsigned &_interval = 9);
 	// others
-	std::string toString(unsigned base = 10) const;
+	bool between(const uInt &A, const uInt &B, bool includeA = true, bool includeB = false) const;
+	std::pair<uInt, uInt> divmod(const unit &_num) const;
+	std::pair<uInt, uInt> divmod(const uInt &A) const;
+	std::pair<uInt, uInt> approxPo2() const;
+	std::string toString(unsigned base = 10, bool suffix = false) const;
+	std::string sciNote(unit deciLength = 9) const;
 	uInt sub(unsigned begin = 0, unsigned end = MAX) const;
 	uInt length(unsigned base = 10) const;
-	uInt count(unsigned i, unsigned base = 10);
+	uInt count(unsigned i, unsigned base = 10) const;
 
 private:
-	static unit adder(const unit &a, const unit &b, unit &carry);
-	static unit suber(const unit &a, const unit &b, bool &carry);
-	static unit muler(const unit &a, const unit &b, const unit &p, unit &carry);
-	static unit diver(const unit &a, const unit &b, unit &carry);
+	static char delimiter;
+	static unsigned interval;
+	inline unit operator[](const unit &i) const { return num[i]; }
+	inline unit size() const { return num.size(); }
+	void normalize();
+	unit adder(const unit &a, const unit &b, unit &carry) const;
+	unit suber(const unit &a, const unit &b, bool &borrow) const;
+	unit muler(const unit &a, const unit &b, const unit &p, unit &carry) const;
+	unit diver(const unit &a, const unit &b, unit &remainder) const;
 	uInt lAdd(const uInt &A) const;
 	std::vector<unit> cut(unsigned begin = 0, unsigned length = 1) const;
 };
@@ -111,7 +135,6 @@ public:
 	// compare-operator overloading
 	bool operator<(const Int &A) const;
 	bool operator==(const Int &A) const { return (p == A.p) && (num == A.num); }
-	void operator=(const Int &A) { num = A.num, p = A.p; }
 	// void operator=(Int &&A) { num = move(A.num), p = A.p; }
 };
 

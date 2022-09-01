@@ -6,9 +6,9 @@ $$1000! = 4.0238726 \times 10^{2567},$$
 
 so it absolutely exceeds the limit of `int` even `unsigned long long` (which is merely `1e19`). But, luckily, `C++` provide us with `array`, so it's possible to combine multiple `int` to expand the boundaries of the representable range. Comparing to ordinary `C array`, the `stl vector` is obviously more convenient, and that's how I realize the Big-Number in `C++`.
 
-## details in `myNumber.h`
+## details in `bigNumber.h`
 
-In `myNumber.h`, I construct couples of classes: `uInt`, `Int`, `Fraction`, `Real` and `Complex`, and overload operators to fit the original operating habits.
+In `bigNumber.h`, I construct couples of classes: `uInt`, `Int`, `Fraction`, `Real` and `Complex`, and overload operators to fit the original operating habits.
 
 ### `uInt` class
 
@@ -33,70 +33,81 @@ calculate is trivial.
 
 ```cpp
 uInt e = a + b; // 1234567891011121314151617247392
-e -= 100;       // 1234567891011121314151617247292
+e -= 100;
 uInt f = c * d;
-b /= uInt(1145141919810); // 1078091605637804892
-uInt g = b^3;             // exponentiation, e.g. 2^4 = 16.
+b /= uInt("1145141919810"); // 1078091605637804892 (TODO)
+uInt g = b ^ 3;             // exponent, e.g. 2^4 = 16.
 std::cout << g << std::endl; 
-// 1,253045939,477188663,853722164,624612006,875048962,971300288
+>>> 1,253045939,477188663,853722164,624612006,875048962,971300288
 ```
 and many related functions are provided
 
 ```cpp
-// uInt::toString(base = 10) returns the number in `string` format.
-std::cout << g.toString() << std::endl; 
-// 1253045939477188663853722164624612006875048962971300288
+// uInt::toString(base = 10, suffix = false) returns the number in `string` format.
+std::cout << g.toString(16, true) << std::endl; 
+>>> D1518D2D6F87B20C2805158F9BCEB1475AF4AF9D271C0(16)
+
+// uInt::sciNote(deciLength = 9) returns the number in scientific notation format.
+std::cout << g.sciNote() << std::endl; 
+>>> 1.253045939 x 10^54
 
 // uInt::length(base = 10) returns the number of digit of `A`.
 std::cout << g.length() << std::endl;
-// 55
-
-// log2(A) returns the max `n` that `2^n <= A`.
-std::cout << log2(g) << std::endl;
-// 179
-
-// exp2fit(A) returns the max `2^n` that `<= A`.
-std::cout << exp2fit(g) << std::endl;
-// 766247770,432944429,179173513,575154591,809369561,091801088
+>>> 55
 ```
 more functions to be continued...
 
-### `Int` class (unfinished)
+### `Int` class (TODO)
 
 almost same as `uInt` class, adding a sign.
 
-### `Fraction` class (unfinished)
+### `Fraction` class (TODO)
 
 consisting of `Int` numerator and `uInt` denominator, also, you can create a `Fraction` object by `int`, `double`, `string`...
 
 (quiet like `python Fraction package`...)
 
-### `Real` class (unfinished)
+### `Real` class (TODO)
 
 consisting of `Int` as the integer part and `vector<int>` as the decimal part.
 
-### `Complex` class (unfinished)
+### `Complex` class (TODO)
 
 consisting of two `Real` as the real part and imaginary part.
 
-### `Polynomial` class (unfinished)
+### `Polynomial` class (TODO)
 
 consisting of multiple `Real` coefficients.
 
-## details in `bigNumGen.h` (unfinished)
+## details in `bigMath.h`
 
-this `.h` has some functions to create numbers that extremely buge, such as `1000!`, 100000th Fibonacci numbers.
+this `.h` has some math functions. 
+
+```cpp
+// exp2(A) returns 2^A
+std::cout << exp2(114514).sciNote() << std::endl;
+>>> 1.409040464 x 10^34472
+
+// log2(A) returns the max `n` that `2^n <= A`.
+std::cout << log2(g) << std::endl;
+>>> 179
+
+// exp2fit(A) returns the max `2^n` that `<= A`.
+std::cout << exp2fit(g) << std::endl;
+>>> 766247770,432944429,179173513,575154591,809369561,091801088
+```
+
+
+you can alse create numbers that extremely buge, such as `1000!`, 100000th Fibonacci numbers.
 
 ## example
 
 With these `.h`s you can easily see how big `1000!` is:
 
 ```cpp
-#include "bigNumGen.h"
-
-std::cout << factorial(1000) << std::endl;
-
->>> 402,387260077,093773543,...,000000000 // I oimt 2538 digits!
+#include "bigMath.h"
+std::cout << factorial(1000).sciNote(50) << std::endl;
+>>> 4.02387260077093773543702433923003985719374864210714 x 10^2567
 ```
 
 ## advantages
