@@ -15,6 +15,6 @@ int main()
 	*/
 
 	uInt b("1234567891011121314151617181920");
-	cout << factorial(1000).sciNote(50) << endl;
+	cout << b.sciNote() << endl;
 	return 0;
 }

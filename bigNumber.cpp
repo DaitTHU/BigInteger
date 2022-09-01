@@ -1,10 +1,13 @@
 #include "bigNumber.h"
 #include "bigMath.h"
-#include <algorithm>
-#include <array>
+#include <assert.h>  // assert
+#include <algorithm> // reverse
+#include <array>     // array
+#include <iomanip>   // setw, setfill
 using namespace std;
 
 char uInt::delimiter = ',';
+unsigned uInt::interval = uInt::LEN;
 
 uInt::uInt(const string &_num)
 {
@@ -91,9 +94,36 @@ uInt uInt::operator^(const uInt &A) const
 
 ostream &operator<<(ostream &os, const uInt &A)
 {
+    if (uInt::interval == 3) // this is really a piece of sheet!
+    {
+        string subNum = to_string(*A.num.rbegin());
+        unsigned firstLen = subNum.length();
+        if (firstLen < 4)
+            os << subNum;
+        else if (firstLen < 7)
+            os << subNum.substr(0, firstLen - 4) << uInt::delimiter
+               << subNum.substr(firstLen - 4, 3);
+        else
+            os << subNum.substr(0, firstLen - 7) << uInt::delimiter
+               << subNum.substr(firstLen - 7, 3) << uInt::delimiter
+               << subNum.substr(firstLen - 4, 3);
+        for (auto part = A.num.rbegin() + 1; part != A.num.rend(); ++part)
+        {
+            subNum = to_string(*part);
+            subNum = string(uInt::LEN - subNum.length(), '0') + subNum;
+            os << uInt::delimiter << subNum.substr(0, 3)
+               << uInt::delimiter << subNum.substr(3, 3)
+               << uInt::delimiter << subNum.substr(6, 3);
+        }
+        return os;
+    }
     os << *A.num.rbegin();
-    for (auto part = A.num.rbegin() + 1; part != A.num.rend(); ++part)
-        os << uInt::delimiter << setfill('0') << setw(uInt::LEN) << *part;
+    if (uInt::interval == 9)
+        for (auto part = A.num.rbegin() + 1; part != A.num.rend(); ++part)
+            os << uInt::delimiter << setfill('0') << setw(uInt::LEN) << *part;
+    else // uInt::interval == 0
+        for (auto part = A.num.rbegin() + 1; part != A.num.rend(); ++part)
+            os << setfill('0') << setw(uInt::LEN) << *part;
     return os;
 }
 
@@ -107,10 +137,15 @@ istream &operator>>(istream &is, uInt &A)
 
 void uInt::setDelimiter(const char &_c, const unsigned &_interval)
 {
-    if (_c == ' ' || _c == ',' || _c == ';')
+    if (_c == ' ' || _c == ',' || _c == ';' || _c == '\'')
         delimiter = _c;
     else
-        cout << "ERROR: illegal delimiter, only \' \', \',\' and \';\' allowed." << endl;
+        cout << "ERROR: N/A delimiter, only \' \', "
+             << "\',\', \'\'\' and \';\' allowed." << endl;
+    if (_interval == 0 || _interval == 3 || _interval == 9) // 4 or 10? maybe.
+        interval = _interval;
+    else
+        cout << "ERROR: N/A interval, only 0, 3 and 9 allowed." << endl;
 }
 
 bool uInt::between(const uInt &A, const uInt &B, bool includeA, bool includeB) const
@@ -167,7 +202,7 @@ pair<uInt, uInt> uInt::approxPo2() const
         return pair<uInt, uInt>(expo2, power + 1);
 }
 
-string uInt::toString(unsigned base, bool suffix) const
+string uInt::toString(const unsigned &base, const bool &suffix) const
 {
     if (base == 10)
     {
@@ -216,28 +251,48 @@ string uInt::sciNote(unit deciLength) const
     return str.substr(0, 2 + deciLength) + " x 10^" + to_string(power);
 }
 
-uInt uInt::sub(unsigned begin, unsigned end) const
+uInt uInt::sub(const unsigned &begin, const unsigned &end) const
 {
     auto back = (end <= size() ? num.begin() + end : num.end());
     return uInt(vector<unit>(num.begin() + begin, back));
 }
 
-uInt uInt::length(unsigned base) const
+uInt uInt::length(const unsigned &base) const
 {
-    uInt len = LEN * (size() - 1);
-    for (uInt expo = 1; expo <= num.back(); expo *= 10)
-        ++len;
-    return len;
+    if (base == 10)
+    {
+        uInt len = LEN * (size() - 1);
+        for (uInt expo = 1; expo <= num.back(); expo *= 10)
+            ++len;
+        return len;
+    }
+    else if (base == 2)
+        return approxPo2().second;
+    else if (base == 4)
+        return approxPo2().second / 2;
+    else if (base == 8)
+        return approxPo2().second / 3;
+    else if (base == 16)
+        return approxPo2().second / 4;
+    return toString(base).length(); // shit
 }
 
 // private function
 
-inline void uInt::normalize()
+void uInt::normalize()
 {
-    while (num.back() == 0)
-        num.pop_back();
-    if (num.empty())
-        num.push_back(0);
+    unit carry = 0;
+    for (unsigned i = 0; i < num.size(); ++i)
+        num[i] = adder(num[i], 0, carry);
+    if (carry > 0)
+        num.push_back(carry);
+    else
+    {
+        while (num.back() == 0)
+            num.pop_back();
+        if (num.empty())
+            num.push_back(0);
+    }
 }
 
 /** @brief a + b + inCarry = c & outCarry. */
@@ -259,7 +314,7 @@ inline unit uInt::suber(const unit &a, const unit &b, bool &borrow) const
 /** @brief a * b + p + inCarry = c & outCarry. */
 inline unit uInt::muler(const unit &a, const unit &b, const unit &p, unit &carry) const
 {
-    doub c = static_cast<doub>(a) * static_cast<doub>(b) + static_cast<doub>(p) + static_cast<doub>(carry);
+    twin c = static_cast<twin>(a) * static_cast<twin>(b) + static_cast<twin>(p) + static_cast<twin>(carry);
     carry = static_cast<unit>(c / MAX);
     return static_cast<unit>(c % MAX);
 }
@@ -267,7 +322,7 @@ inline unit uInt::muler(const unit &a, const unit &b, const unit &p, unit &carry
 /** @brief a / b + prevRemainder = c & nextRemainder. */
 inline unit uInt::diver(const unit &a, const unit &b, unit &remainder) const
 {
-    doub c = static_cast<doub>(MAX) * static_cast<doub>(remainder) + static_cast<doub>(a);
+    twin c = static_cast<twin>(MAX) * static_cast<twin>(remainder) + static_cast<twin>(a);
     remainder = static_cast<unit>(c % b);
     return static_cast<unit>(c / b);
 }

@@ -16,7 +16,7 @@ You can create a `uInt` object by `int`, `char*` and `string`:
 
 ```cpp
 uInt a = 65472;
-uInt b("1234567891011121314151617181920"); // only digits allowed
+uInt b("1234567891011121314151617181920");     // only digits allowed
 // uInt b = "1234567891011121314151617181920"; // cause error
 uInt c = b, d;
 std::cout << "You can also input the number you want: ";

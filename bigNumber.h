@@ -1,22 +1,23 @@
 #ifndef BIG_NUMBER_H_
 #define BIG_NUMBER_H_
-#include <iostream>
+#include <iostream> // std::ostream...
 // #include <fstream>
-#include <vector>
-#include <string>
-#include <utility>
-#include <assert.h>
-#include <iomanip>
+#include <vector>  // std::vector
+#include <string>  // std::string
+#include <utility> // std::pair
+
 typedef uint32_t unit;
-typedef uint64_t doub;
-typedef int32_t snit;
+typedef uint64_t twin;
+typedef int32_t snit; // unit: unsigned; snit: signed - make sense!
 
 class uInt
 {
 protected:
 	std::vector<unit> num{};
 	static const unit LEN = 9;
-	static const unit MAX = 1000000000; // 0xFFFFFFFF = 4,294,967,295
+	static const unit MAX = 1'000'000'000; // 0x100000000 = 4'294'967'296
+	static char delimiter;
+	static unsigned interval;
 
 public:
 	uInt(){};
@@ -91,21 +92,18 @@ public:
 	// I/O stream
 	friend std::ostream &operator<<(std::ostream &os, const uInt &A);
 	friend std::istream &operator>>(std::istream &is, uInt &A);
-	static void setDelimiter(const char &_c, const unsigned &_interval = 9);
+	static void setDelimiter(const char &_c = ',', const unsigned &_interval = LEN);
 	// others
 	bool between(const uInt &A, const uInt &B, bool includeA = true, bool includeB = false) const;
 	std::pair<uInt, uInt> divmod(const unit &_num) const;
 	std::pair<uInt, uInt> divmod(const uInt &A) const;
 	std::pair<uInt, uInt> approxPo2() const;
-	std::string toString(unsigned base = 10, bool suffix = false) const;
-	std::string sciNote(unit deciLength = 9) const;
-	uInt sub(unsigned begin = 0, unsigned end = MAX) const;
-	uInt length(unsigned base = 10) const;
-	uInt count(unsigned i, unsigned base = 10) const;
+	std::string toString(const unsigned &base = 10, const bool &suffix = false) const;
+	std::string sciNote(unit deciLength = LEN) const; // if should for ostream, not string?
+	uInt sub(const unsigned &begin = 0, const unsigned &end = MAX) const;
+	uInt length(const unsigned &base = 10) const;
 
 private:
-	static char delimiter;
-	static unsigned interval;
 	inline unit operator[](const unit &i) const { return num[i]; }
 	inline unit size() const { return num.size(); }
 	void normalize();
