@@ -50,7 +50,7 @@ uInt g = b ^ 3;             // exponent, e.g. 2^4 = 16.
 std::cout << g << std::endl; 
 >>> 1,253045939,477188663,853722164,624612006,875048962,971300288
 ```
-**WARNING:** Directly operating `uInt` with `string` is strongly discouraged. ~~It's **NOT** `JavaScript`.~~
+**WARNING:** Directly operating `uInt` with `string` is strongly discouraged. ~~It's **NOT** JavaScript.~~
 
 ```cpp
 std::cout << f + "314159265358" << std::endl;       // this is evil.
@@ -74,7 +74,7 @@ std::cout << g.sciNote() << std::endl;
 std::cout << g.length() << std::endl;
 >>> 55
 ```
-by the way, `sciNote(-1)` shows all the decimal digits. ~~(cause `unsigned(-1) = 4294967295`)~~
+by the way, `sciNote(-1)` shows all the decimal digits. (cause `unsigned(-1) = 4294967295`)
 
 more functions to be continued...
 
@@ -82,9 +82,9 @@ more functions to be continued...
 
 almost same as `uInt` class, adding a sign.
 
-### 3. `Fraction` class (TODO)
+### 3. `Frac` class (TODO)
 
-consisting of `Int` numerator and `uInt` denominator, also, you can create a `Fraction` object by `int`, `double`, `string`...
+Fraction, consisting of `Int` numerator and `uInt` denominator, also, you can create a `Frac` object by `int`, `double`, `string`...
 
 (quiet like `Fraction package` in `Python`, lol...)
 
@@ -96,9 +96,9 @@ consisting of `Int` as the integer part and `vector<int>` as the decimal part.
 
 consisting of two `Real` as the real part and imaginary part.
 
-### 6. `Polynomial` class (TODO)
+### 6. `Poly` class (TODO)
 
-consisting of multiple `Real` coefficients.
+Polynomial, consisting of multiple `Real` coefficients.
 
 ## `bigMath.h`
 

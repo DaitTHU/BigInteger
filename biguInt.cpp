@@ -341,9 +341,3 @@ uInt uInt::lAdd(const uInt &A) const
         sum.push_back(carry);
     return uInt(sum);
 }
-
-/** @brief cut a sub-number, no check. */
-vector<unit> uInt::cut(unsigned begin, unsigned length) const
-{
-    return vector<unit>(num.begin() + begin, num.begin() + begin + length);
-}
