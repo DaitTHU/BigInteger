@@ -2,10 +2,11 @@
 #include "bigMath.h"
 using namespace std;
 
-Real Poly::operator()(const Real &X, const unsigned &dxOrder) const
+template <typename F>
+F Poly<F>::operator()(const F &x, const unsigned &dOrder) const
 {
     Real result = coef.back();
     for (auto a = coef.rbegin(); a != coef.rend(); ++a)
-        result = result * X + result;
+        result = result * x + result;
     return result;
 }

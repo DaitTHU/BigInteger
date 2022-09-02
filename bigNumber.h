@@ -322,17 +322,18 @@ public:
 	Real norm2() const { return a ^ 2 + b ^ 2; }
 };
 
+template <typename F> // Real, Complex
 class Poly // Polynomial
 {
 protected:
-	std::vector<Real> coef; // coefficient
+	std::vector<F> coef; // coefficient
 public:
 	Poly(){};
-	Poly(const Real &_c0) { coef.push_back(_c0); }
-	Poly(const std::vector<Real> &_c) : coef(_c) {}
-	Poly(const Poly &F) = default;
-	Poly(Poly &&F) = default;
+	Poly(const F &_c0) { coef.push_back(_c0); }
+	Poly(const std::vector<F> &_c) : coef(_c) {}
+	Poly(const Poly &A) = default;
+	Poly(Poly &&A) = default;
 	~Poly() = default;
-	Real operator()(const Real &X, const unsigned &dxOrder = 0) const; // f(x)
-	Real &operator[](const unsigned &i) { return coef[i]; }
+	F operator()(const F &x, const unsigned &dOrder = 0) const; // f(x)
+	F &operator[](const unsigned &i) { return coef[i]; }
 };
