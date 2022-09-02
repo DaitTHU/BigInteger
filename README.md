@@ -50,14 +50,20 @@ uInt g = b ^ 3;             // exponent, e.g. 2^4 = 16.
 std::cout << g << std::endl; 
 >>> 1,253045939,477188663,853722164,624612006,875048962,971300288
 ```
-**WARNING:** Directly operating `uInt` with `string` is strongly discouraged. ~~It's **NOT** JavaScript.~~
+**WARNING 1:** Directly operating `uInt` with `string` is strongly discouraged. ~~It's **NOT** JavaScript.~~
 
 ```cpp
 std::cout << f + "314159265358" << std::endl;       // this is evil.
 std::cout << f + uInt("314159265358") << std::endl; // use type-conversion at least
 ```
 
+**WARNING 2:** The `^` operator has lower precedence than `+-`, even `==`. What's worse, unlike math, `^` combines left. So please use `()` when doing mixed operations involving power `^`. (Not elegant! 😫)
 
+```cpp
+f = 2 + uInt(3) ^ 4.   // = 5 ^ 4 = 625
+f = 2 + (uInt(3) ^ 4). // = 2 + 81 = 83
+f = 3 ^ uInt(3) ^ 3.   // = 27 ^ 3 = 19683
+```
 
 and many related functions are provided
 
