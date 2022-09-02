@@ -55,3 +55,4 @@ uInt fibonacci(unsigned n, bool startFrom0)
     }
     return a * (a + 2 * b); // f(2k) = f(k) * (f(k) + 2f(k-1))
 }
+

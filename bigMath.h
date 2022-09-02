@@ -13,6 +13,8 @@ uInt log2(const uInt &A);
 
 uInt sqrt(const uInt &A);
 
+Real sqrt(const Real &A);
+
 uInt gcd(const uInt &A, const uInt &B);
 
 uInt exgcd(const uInt &A, const uInt &B);
@@ -26,4 +28,4 @@ uInt factorial(unsigned n);
  * f(1) = f(2) = 1, f(n) = f(n-1) + f(n-2). */
 uInt fibonacci(unsigned n, bool startFrom0 = false);
 
-#endif // big-number generator
+#endif

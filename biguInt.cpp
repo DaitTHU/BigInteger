@@ -6,15 +6,22 @@
 #include <iomanip>   // setw, setfill
 using namespace std;
 
+#define LOG2_10 1079882313 / 325076968 // DO NOT TOUCH
+
 char uInt::delimiter = ',';
 unsigned uInt::interval = uInt::LEN;
 
 uInt::uInt(const string &_num)
 {
-    for (auto digit : _num)
+    if (_num[0] == '+' || _num[0] == '-')
+    {
+        *this = uInt(_num.substr(1)); // omit sign
+        return;
+    }
+    for (auto &digit : _num)
         if (digit < '0' || digit > '9')
         {
-            cout << "ERROR: Not a uInteger, set as 0." << endl;
+            cout << "WARNING: N/A string in uInt constructor, set as 0." << endl;
             num.push_back(0);
             return;
         }
@@ -22,12 +29,6 @@ uInt::uInt(const string &_num)
     for (pos = _num.length() - LEN; pos > 0; pos -= LEN)
         num.push_back(stoi(_num.substr(pos, LEN)));
     num.push_back(stoi(_num.substr(0, pos + LEN)));
-}
-
-uInt &uInt::operator=(const uInt &A)
-{
-    num = A.num;
-    return *this;
 }
 
 bool uInt::operator<(const uInt &A) const
@@ -65,7 +66,7 @@ uInt uInt::operator*(const uInt &A) const
     {
         carry = 0;
         for (unsigned j = 0; j < size(); ++j)
-            prod[i + j] = muler(A[i], num[j], prod[i + j], carry);
+            muler(A[i], num[j], prod[i + j], carry);
         if (carry > 0)
             prod[i + size()] += carry;
     }
@@ -193,8 +194,8 @@ pair<uInt, uInt> uInt::approxPo2() const
     for (exp10 = 1; exp10 <= num.back(); exp10 *= 10)
         ++len;
     unit firstNum = num.back() / (exp10 / 10);
-    static const unit log_2[] = {0, 0, 1, 1, 2, 2, 2, 2, 3, 3};        // error: -1 ~ 0
-    uInt power = log_2[firstNum] + (len - 1) * 1079882313 / 325076968; // log2(10)
+    static const unsigned short log2_[] = {0, 0, 1, 1, 2, 2, 2, 2, 3, 3};
+    uInt power = log2_[firstNum] + (len - 1) * LOG2_10; // error: -1 ~ 0
     uInt expo = exp2(power), expo2 = expo * 2;
     if (*this < expo2)
         return pair<uInt, uInt>(expo, power);
@@ -312,11 +313,11 @@ inline unit uInt::suber(const unit &a, const unit &b, bool &borrow) const
 }
 
 /** @brief a * b + p + inCarry = c & outCarry. */
-inline unit uInt::muler(const unit &a, const unit &b, const unit &p, unit &carry) const
+inline void uInt::muler(const unit &a, const unit &b, unit &p, unit &carry) const
 {
     twin c = static_cast<twin>(a) * static_cast<twin>(b) + static_cast<twin>(p) + static_cast<twin>(carry);
     carry = static_cast<unit>(c / MAX);
-    return static_cast<unit>(c % MAX);
+    p = static_cast<unit>(c % MAX);
 }
 
 /** @brief a / b + prevRemainder = c & nextRemainder. */

@@ -6,23 +6,33 @@ $$1000! = 4.0238726 \times 10^{2567},$$
 
 so it absolutely exceeds the limit of `int` even `unsigned long long` (which is merely `1e19`). But, luckily, `C++` provide us with `array`, so it's possible to combine multiple `int` to expand the boundaries of the representable range. Comparing to ordinary `C array`, the `stl vector` is obviously more convenient, and that's how I realize the Big-Number in `C++`.
 
-## details in `bigNumber.h`
+## `bigNumber.h`
 
 In `bigNumber.h`, I construct couples of classes: `uInt`, `Int`, `Fraction`, `Real` and `Complex`, and overload operators to fit the original operating habits.
 
-### `uInt` class
+### 1. `uInt` class
 
 You can create a `uInt` object by `int`, `char*` and `string`:
 
 ```cpp
 uInt a = 65472;
-uInt b("1234567891011121314151617181920");     // only digits allowed
-// uInt b = "1234567891011121314151617181920"; // cause error
+uInt b("1234567891011121314151617181920");
+// uInt b = "1234567891011121314151617181920"; // error: can't tell char* from int
 uInt c = b, d;
 std::cout << "You can also input the number you want: ";
 std::cin >> d;
 ```
-`uInt`s are comparable. If you perfer `a < x < b` like `python`, you can use `uInt::between`!
+
+For `string`-constructor, `strings` can only consist of numbers and leading signs (which will be omitted).
+
+```cpp
+uInt positiveInt("-2718281828");         // 2718281828
+uInt hilariousDemo("-+-+-+-1414213562"); // 1414213562
+// uInt errorDemo1("114514+1919810")     // Constructors don't do math
+// uInt errorDemo2("0xABCDEF")           // only base-10 readable
+```
+
+`uInt`s are comparable. If you perfer `a < x < b` like `Python`, you can use `uInt::between`!
 
 ```cpp
 std::cout << "d > 10000? " << (d > 10000) << std::endl;
@@ -40,6 +50,15 @@ uInt g = b ^ 3;             // exponent, e.g. 2^4 = 16.
 std::cout << g << std::endl; 
 >>> 1,253045939,477188663,853722164,624612006,875048962,971300288
 ```
+**WARNING:** Directly operating `uInt` with `string` is strongly discouraged. ~~It's **NOT** `JavaScript`.~~
+
+```cpp
+std::cout << f + "314159265358" << std::endl;       // this is evil.
+std::cout << f + uInt("314159265358") << std::endl; // use type-conversion at least
+```
+
+
+
 and many related functions are provided
 
 ```cpp
@@ -55,31 +74,33 @@ std::cout << g.sciNote() << std::endl;
 std::cout << g.length() << std::endl;
 >>> 55
 ```
+by the way, `sciNote(-1)` shows all the decimal digits. ~~(cause `unsigned(-1) = 4294967295`)~~
+
 more functions to be continued...
 
-### `Int` class (TODO)
+### 2. `Int` class (TODO)
 
 almost same as `uInt` class, adding a sign.
 
-### `Fraction` class (TODO)
+### 3. `Fraction` class (TODO)
 
 consisting of `Int` numerator and `uInt` denominator, also, you can create a `Fraction` object by `int`, `double`, `string`...
 
-(quiet like `python Fraction package`...)
+(quiet like `Fraction package` in `Python`, lol...)
 
-### `Real` class (TODO)
+### 4. `Real` class (TODO)
 
 consisting of `Int` as the integer part and `vector<int>` as the decimal part.
 
-### `Complex` class (TODO)
+### 5. `Complex` class (TODO)
 
 consisting of two `Real` as the real part and imaginary part.
 
-### `Polynomial` class (TODO)
+### 6. `Polynomial` class (TODO)
 
 consisting of multiple `Real` coefficients.
 
-## details in `bigMath.h`
+## `bigMath.h`
 
 this `.h` has some math functions. 
 
@@ -116,6 +137,6 @@ I've saw many big-integer codes, most of them use `string`, which is low of effe
 
 ## disadvantages
 
-Multiplication and division are inefficient, I know, and most importantly, `python` naturally use arbitrary length integer!
+Multiplication and division are inefficient, I know, and most importantly, `Python` naturally use arbitrary length integer!
 
 I still have a lot of unfinished work left. I'll finish this one day.

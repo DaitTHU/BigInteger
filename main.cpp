@@ -15,6 +15,13 @@ int main()
 	*/
 
 	uInt b("1234567891011121314151617181920");
-	cout << b.sciNote() << endl;
+	/*
+	cout << factorial(200).sciNote() << endl
+		 << factorial(200).approxPo2().first.sciNote() << endl;
+	*/
+
+	Int c;
+	cin >> c;
+	cout << c << endl;
 	return 0;
 }
