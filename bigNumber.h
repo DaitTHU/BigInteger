@@ -14,54 +14,54 @@ class Meta // abstract class, CRTP
 {
 public:
 	// relational
-	virtual bool operator<(const I &A) const = 0;
-	virtual bool operator==(const I &A) const = 0;
-	bool operator>(const I &A) const { return A < *this; }
-	bool operator<=(const I &A) const { return !operator>(A); }
-	bool operator>=(const I &A) const { return !operator<(A); }
-	bool operator!=(const I &A) const { return !operator==(A); }
+	bool operator<(const Meta &A) const { return static_cast<I *>(this)->less(static_cast<I>(A)); }
+	bool operator==(const Meta &A) const { return static_cast<I *>(this)->equal(static_cast<I>(A)); }
+	bool operator>(const Meta &A) const { return A < *this; }
+	bool operator<=(const Meta &A) const { return !operator>(A); }
+	bool operator>=(const Meta &A) const { return !operator<(A); }
+	bool operator!=(const Meta &A) const { return !operator==(A); }
 	// right relational
-	friend bool operator<(const i _num, const I &A) { return A > _num; }
-	friend bool operator>(const i _num, const I &A) { return A < _num; }
-	friend bool operator==(const i _num, const I &A) { return A == _num; }
-	friend bool operator<=(const i _num, const I &A) { return A >= _num; }
-	friend bool operator>=(const i _num, const I &A) { return A <= _num; }
-	friend bool operator!=(const i _num, const I &A) { return A != _num; }
+	friend bool operator<(const i _num, const Meta &A) { return A > _num; }
+	friend bool operator>(const i _num, const Meta &A) { return A < _num; }
+	friend bool operator==(const i _num, const Meta &A) { return A == _num; }
+	friend bool operator<=(const i _num, const Meta &A) { return A >= _num; }
+	friend bool operator>=(const i _num, const Meta &A) { return A <= _num; }
+	friend bool operator!=(const i _num, const Meta &A) { return A != _num; }
 	// binary arithmetic
-	virtual I operator+(const I &A) const = 0;
-	virtual I operator-(const I &A) const = 0;
-	virtual I operator*(const I &A) const = 0;
-	virtual I operator/(const I &A) const = 0;
-	virtual I operator%(const I &A) const = 0;
-	virtual I operator^(const I &A) const = 0;
-	I operator&(const I &A) const = delete;
-	I operator|(const I &A) const = delete;
+	I operator+(const Meta &A) const { return static_cast<I *>(this)->add(static_cast<I>(A)); }
+	I operator-(const Meta &A) const { return static_cast<I *>(this)->sub(static_cast<I>(A)); }
+	I operator*(const Meta &A) const { return static_cast<I *>(this)->mul(static_cast<I>(A)); }
+	I operator/(const Meta &A) const { return static_cast<I *>(this)->div(static_cast<I>(A)); }
+	I operator%(const Meta &A) const { return static_cast<I *>(this)->mod(static_cast<I>(A)); }
+	I operator^(const Meta &A) const { return static_cast<I *>(this)->pow(static_cast<I>(A)); }
+	I operator&(const Meta &A) const = delete;
+	I operator|(const Meta &A) const = delete;
 	// right binary arithmetic
-	friend I operator+(const i _num, const I &A) { return A + _num; }
-	friend I operator-(const i _num, const I &A) { return I(_num) - A; }
-	friend I operator*(const i _num, const I &A) { return A * _num; }
-	friend I operator/(const i _num, const I &A) { return I(_num) / A; }
-	friend I operator%(const i _num, const I &A) { return I(_num) % A; }
-	friend I operator^(const i _num, const I &A) { return I(_num) ^ A; }
+	friend I operator+(const i _num, const Meta &A) { return A + _num; }
+	friend I operator-(const i _num, const Meta &A) { return static_cast<Meta>(_num) - A; }
+	friend I operator*(const i _num, const Meta &A) { return A * _num; }
+	friend I operator/(const i _num, const Meta &A) { return static_cast<Meta>(_num) / A; }
+	friend I operator%(const i _num, const Meta &A) { return static_cast<Meta>(_num) % A; }
+	friend I operator^(const i _num, const Meta &A) { return static_cast<Meta>(_num) ^ A; }
 	// arithmetic-assignment
-	I &operator+=(const I &A) { return *this = *this + A; }
-	I &operator-=(const I &A) { return *this = *this - A; }
-	I &operator*=(const I &A) { return *this = *this * A; }
-	I &operator/=(const I &A) { return *this = *this / A; }
-	I &operator%=(const I &A) { return *this = *this % A; }
-	I &operator^=(const I &A) { return *this = *this ^ A; }
+	I &operator+=(const Meta &A) { return *this = *this + A; }
+	I &operator-=(const Meta &A) { return *this = *this - A; }
+	I &operator*=(const Meta &A) { return *this = *this * A; }
+	I &operator/=(const Meta &A) { return *this = *this / A; }
+	I &operator%=(const Meta &A) { return *this = *this % A; }
+	I &operator^=(const Meta &A) { return *this = *this ^ A; }
 	// ++/--
 	I operator++() { return *this += 1; }
 	I operator++(int) { return *this += 1; } // may change, i don't konw.
 	I operator--() { return *this -= 1; }
 	I operator--(int) { return *this -= 1; }
-	// I/O stream
-	// friend std::ostream &operator<<(std::ostream &os, const I &A);
-	friend std::istream &operator>>(std::istream &is, I &A)
+	// Meta/O stream
+	// friend std::ostream &operator<<(std::ostream &os, const Meta &A);
+	friend std::istream &operator>>(std::istream &is, Meta &A)
 	{
 		std::string str;
 		is >> str;
-		A = I(str);
+		A = Meta(str);
 		return is;
 	}
 };
