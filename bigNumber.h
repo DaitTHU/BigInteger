@@ -9,6 +9,63 @@ typedef uint32_t unit;
 typedef uint64_t twin;
 typedef int32_t snit; // unit: unsigned; snit: signed - make sense!
 
+template <typename I, typename i>
+class Meta // abstract class, CRTP
+{
+public:
+	// relational
+	virtual bool operator<(const I &A) const = 0;
+	virtual bool operator==(const I &A) const = 0;
+	bool operator>(const I &A) const { return A < *this; }
+	bool operator<=(const I &A) const { return !operator>(A); }
+	bool operator>=(const I &A) const { return !operator<(A); }
+	bool operator!=(const I &A) const { return !operator==(A); }
+	// right relational
+	friend bool operator<(const i _num, const I &A) { return A > _num; }
+	friend bool operator>(const i _num, const I &A) { return A < _num; }
+	friend bool operator==(const i _num, const I &A) { return A == _num; }
+	friend bool operator<=(const i _num, const I &A) { return A >= _num; }
+	friend bool operator>=(const i _num, const I &A) { return A <= _num; }
+	friend bool operator!=(const i _num, const I &A) { return A != _num; }
+	// binary arithmetic
+	virtual I operator+(const I &A) const = 0;
+	virtual I operator-(const I &A) const = 0;
+	virtual I operator*(const I &A) const = 0;
+	virtual I operator/(const I &A) const = 0;
+	virtual I operator%(const I &A) const = 0;
+	virtual I operator^(const I &A) const = 0;
+	I operator&(const I &A) const = delete;
+	I operator|(const I &A) const = delete;
+	// right binary arithmetic
+	friend I operator+(const i _num, const I &A) { return A + _num; }
+	friend I operator-(const i _num, const I &A) { return I(_num) - A; }
+	friend I operator*(const i _num, const I &A) { return A * _num; }
+	friend I operator/(const i _num, const I &A) { return I(_num) / A; }
+	friend I operator%(const i _num, const I &A) { return I(_num) % A; }
+	friend I operator^(const i _num, const I &A) { return I(_num) ^ A; }
+	// arithmetic-assignment
+	I &operator+=(const I &A) { return *this = *this + A; }
+	I &operator-=(const I &A) { return *this = *this - A; }
+	I &operator*=(const I &A) { return *this = *this * A; }
+	I &operator/=(const I &A) { return *this = *this / A; }
+	I &operator%=(const I &A) { return *this = *this % A; }
+	I &operator^=(const I &A) { return *this = *this ^ A; }
+	// ++/--
+	I operator++() { return *this += 1; }
+	I operator++(int) { return *this += 1; } // may change, i don't konw.
+	I operator--() { return *this -= 1; }
+	I operator--(int) { return *this -= 1; }
+	// I/O stream
+	// friend std::ostream &operator<<(std::ostream &os, const I &A);
+	friend std::istream &operator>>(std::istream &is, I &A)
+	{
+		std::string str;
+		is >> str;
+		A = I(str);
+		return is;
+	}
+};
+
 class uInt
 {
 protected:
@@ -27,8 +84,16 @@ public:
 	uInt(uInt &&A) = default;
 	virtual ~uInt() = default;
 	// assignment
-	uInt &operator=(const uInt &A) { num = A.num; return *this; }
-	uInt &operator=(uInt &&A) { num = std::move(A.num); return *this; }
+	uInt &operator=(const uInt &A)
+	{
+		num = A.num;
+		return *this;
+	}
+	uInt &operator=(uInt &&A)
+	{
+		num = std::move(A.num);
+		return *this;
+	}
 	// relational
 	bool operator<(const uInt &A) const;
 	bool operator>(const uInt &A) const { return A < *this; }
@@ -119,8 +184,16 @@ public:
 	Int(Int &&A) = default;
 	virtual ~Int() = default;
 	// assignment
-	Int &operator=(const Int &A) { num = A.num, p = A.p; return *this; }
-	Int &operator=(Int &&A) { num = std::move(A.num), p = A.p; return *this; }
+	Int &operator=(const Int &A)
+	{
+		num = A.num, p = A.p;
+		return *this;
+	}
+	Int &operator=(Int &&A)
+	{
+		num = std::move(A.num), p = A.p;
+		return *this;
+	}
 	// relational
 	bool operator>(const Int &A) const { return p == A.p ? p ? uInt::operator>(A.num) : uInt::operator<(A.num) : p; }
 	bool operator<(const Int &A) const { return A > *this; }
@@ -188,8 +261,16 @@ public:
 	Frac(Frac &&A) = default;
 	~Frac() = default;
 	// assignment
-	Frac &operator=(const Frac &A) { nume = A.nume, deno = A.deno; return *this; }
-	Frac &operator=(Frac &&A) { nume = std::move(A.nume), deno = std::move(A.deno); return *this; }
+	Frac &operator=(const Frac &A)
+	{
+		nume = A.nume, deno = A.deno;
+		return *this;
+	}
+	Frac &operator=(Frac &&A)
+	{
+		nume = std::move(A.nume), deno = std::move(A.deno);
+		return *this;
+	}
 	// relational
 	bool operator<(const Frac &A) const { return nume * A.deno < A.nume * deno; };
 	bool operator>(const Frac &A) const { return A < *this; }
@@ -242,8 +323,16 @@ public:
 	Real(Real &&A) = default;
 	~Real() = default;
 	// assignment
-	Real &operator=(const Real &A) { num = A.num, p = A.p, dec = A.dec; return *this; }
-	Real &operator=(Real &&A) { num = move(A.num), p = A.p, dec = move(A.dec); return *this; }
+	Real &operator=(const Real &A)
+	{
+		num = A.num, p = A.p, dec = A.dec;
+		return *this;
+	}
+	Real &operator=(Real &&A)
+	{
+		num = move(A.num), p = A.p, dec = move(A.dec);
+		return *this;
+	}
 	// relational
 	bool operator<(const Real &A) const;
 	bool operator>(const Real &A) const { return A < *this; }
@@ -323,7 +412,7 @@ public:
 };
 
 template <typename F> // Real, Complex
-class Poly // Polynomial
+class Poly			  // Polynomial
 {
 protected:
 	std::vector<F> coef; // coefficient
