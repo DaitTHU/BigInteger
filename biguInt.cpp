@@ -9,7 +9,7 @@ using namespace std;
 #define LOG10_2_32_9 241726409 / 225843117 // 32 * lg2 / 9
 #define LOG2_10 1079882313 / 325076968     // DO NOT TOUCH
 
-static const unsigned short log2_[] = {0, 0, 1, 1, 2, 2, 2, 2, 3, 3};
+static const unsigned char log2_[] = {0, 0, 1, 1, 2, 2, 2, 2, 3, 3};
 static const unit exp_10[] = {
     1, 10, 100, 1'000, 10'000, 100'000, 1'000'000, 10'000'000, 100'000'000, 1'000'000'000};
 static const char alphabet[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -255,7 +255,7 @@ void uInt::setDelimiter(const char &_c, const unsigned &_interval)
 
 bool uInt::between(const uInt &A, const uInt &B, bool includeA, bool includeB) const
 {
-    switch (includeA << 1 & includeB)
+    switch ((includeA << 1) | includeB)
     {
     case 0b10:
         return (A <= *this) && (*this < B);
@@ -268,18 +268,18 @@ bool uInt::between(const uInt &A, const uInt &B, bool includeA, bool includeB) c
     }
 }
 
-pair<uInt, uInt> uInt::divmod(const unit &divident) const
+pair<uInt, unit> uInt::divmod(const unit &divident) const
 {
     assert(divident != 0);
     if (*this < divident)
-        return pair<uInt, uInt>(0, *this);
+        return pair<uInt, unit>(0, num[0]);
     vector<unit> quot(size(), 0); // quotient
     unit remainder = 0;
     for (int i = quot.size() - 1; i >= 0; --i)
         quot[i] = diver(num[i], divident, remainder);
     if (quot.back() == 0)
         quot.pop_back();
-    return pair<uInt, uInt>(quot, remainder);
+    return pair<uInt, unit>(quot, remainder);
 }
 
 /** @return pair(quotient, remainder) */
@@ -289,27 +289,48 @@ pair<uInt, uInt> uInt::divmod(const uInt &A) const
         return divmod(A[0]);
     if (*this < A)
         return pair<uInt, uInt>(0, *this);
-    return pair<uInt, uInt>(0, *this); // to be cancelled.
-    // unit attempt = ((static_cast<twin>(MAX) * static_cast<twin>(num.back()) + static_cast<twin>(num[num.size() - 2])) / A.num.back());
+    // attempt div, result Quot >= real Q
+    unit exceedLen = A.length() - LEN;
+    uInt maxQ = (*this >> exceedLen).divmod((A >> exceedLen)[0]).first + 1;
+    // return pair<uInt, uInt>(maxQ, *this - maxQ * A);
+    if (*this == maxQ * A)
+        return pair<uInt, uInt>(maxQ, 0);
+    // real Q >= maxQ * MAX / (MAX + 1)
+    if (maxQ <= static_cast<uInt>(MAX)) // minQ = maxQ <= MAX
+        return pair<uInt, uInt>(maxQ, *this - maxQ * A);
+    // here couldn't div (MAX + 1), replace smaller (MAX - 1) / MAX
+    uInt minQ = ((maxQ * static_cast<uInt>(MAX - 10)) >> LEN);
+    while (minQ + 1 < maxQ) // *this < maxQ * A
+    {
+        uInt midQ = (maxQ + minQ) / 2;
+        uInt midQA = midQ * A;
+        if (*this > midQA)
+            minQ = move(midQ);
+        else if (*this < midQA)
+            maxQ = move(midQ);
+        else
+            return pair<uInt, uInt>(midQ, 0);
+    }
+    return pair<uInt, uInt>(minQ, *this - minQ * A);
 }
 
 /** @brief approx. to power of 2
  *  @return largest (2^n, n) that 2^n <= *this */
-pair<uInt, uInt> uInt::approxExp2() const
+pair<uInt, unit> uInt::approxExp2() const
 {
     if (*this == 0)
-        return pair<uInt, uInt>(0, 0);
-    uInt len = LEN * (size() - 1);
+        return pair<uInt, unit>(0, 0);
+    unit len = LEN * (size() - 1);
     unsigned i = 1;
     for (; exp_10[i] <= num.back(); ++i)
         ++len;
     unit firstNum = num.back() / exp_10[i - 1];
-    uInt power = log2_[firstNum] + len * LOG2_10; // error: -1 ~ 0
+    unit power = static_cast<unit>(log2_[firstNum]) + len * LOG2_10;
     uInt expo = exp2(power), expo2 = expo * 2;
     if (*this < expo2)
-        return pair<uInt, uInt>(expo, power);
+        return pair<uInt, unit>(expo, power);
     else
-        return pair<uInt, uInt>(expo2, power + 1);
+        return pair<uInt, unit>(expo2, power + 1); // fix error
 }
 
 uInt uInt::sqrt() const
@@ -336,10 +357,6 @@ string uInt::toString(const unsigned &base, const bool &suffix) const
             str += "(10)";
         return str;
     }
-    // else if (base == 2)
-    //{
-    //     string str = "";
-    // }
     assert(base <= 37);
     pair<uInt, uInt> qr = divmod(base);
     string str(1, alphabet[unit(qr.second)]);
@@ -376,11 +393,11 @@ uInt uInt::subInt(const unsigned &begin, const unsigned &end) const
     return uInt(vector<unit>(num.begin() + begin, back));
 }
 
-uInt uInt::length(const unsigned &base) const
+unit uInt::length(const unsigned &base) const
 {
     if (base == 10)
     {
-        uInt len = LEN * (size() - 1);
+        unit len = LEN * (size() - 1);
         for (unsigned i = 1; exp_10[i] <= num.back(); ++i)
             ++len;
         return len + 1;
@@ -412,10 +429,8 @@ void uInt::normalize()
         num.push_back(carry);
         return;
     }
-    while (num.back() == 0)
+    while (num.back() == 0 && size() > 1)
         num.pop_back();
-    if (num.empty())
-        num.push_back(0);
 }
 
 /** @brief a + b + inCarry = c & outCarry. */

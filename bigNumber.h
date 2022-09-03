@@ -54,7 +54,7 @@ public:
 	// derivative
 	bool operator>(const uInt &A) const { return A < *this; }
 	bool operator>=(const uInt &A) const { return !(*this < A); }
-	bool operator<=(const uInt &A) const { return !(A < *this); }
+	bool operator<=(const uInt &A) const { return !(*this > A); }
 	bool operator!=(const uInt &A) const { return !(*this == A); }
 	uInt operator+(const uInt &A) const { return uInt(*this) += A; }
 	uInt operator-(const uInt &A) const { return uInt(*this) -= A; }
@@ -93,18 +93,20 @@ public:
 	static void setDelimiter(const char &_c = ',', const unsigned &_interval = LEN);
 	// others
 	bool between(const uInt &A, const uInt &B, bool includeA = true, bool includeB = false) const;
-	std::pair<uInt, uInt> divmod(const unit &_num) const;
+	uInt half(const uInt &A, const uInt &B);
+	std::pair<uInt, unit> divmod(const unit &_num) const;
 	std::pair<uInt, uInt> divmod(const uInt &A) const;
-	std::pair<uInt, uInt> approxExp2() const;
+	std::pair<uInt, unit> approxExp2() const;
 	uInt sqrt() const;
 	std::string toString(const unsigned &base = 10, const bool &suffix = false) const;
+	// friend std::string to_string(const uInt&A) { return A.toString(); } 
 	std::string sciNote(unit deciLength = LEN) const; // whether should for ostream, not string?
 	uInt subInt(const unsigned &begin = 0, const unsigned &end = MAX) const;
-	uInt length(const unsigned &base = 10) const;
+	unit length(const unsigned &base = 10) const;
 
 private:
 	unit operator[](const unit &i) const { return num[i]; }
-	twin size() const { return num.size(); }
+	unit size() const { return num.size(); }
 	void normalize();
 	unit adder(const unit &a, const unit &b, unit &carry) const;
 	unit suber(const unit &a, const unit &b, bool &borrow) const;

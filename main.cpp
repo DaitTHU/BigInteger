@@ -17,8 +17,8 @@ int main()
 
 	// uInt b("1234567891011121314151617181920");
 
-	cout << factorial(5000).sciNote() << endl
-		 << factorial(5000).approxExp2().first.sciNote() << endl;
+	// cout << factorial(5000).sciNote() << endl
+	//	 << factorial(5000).approxExp2().first.sciNote() << endl;
 
 	/*
 	cout << factorial(10000).length() / 9 << endl
@@ -33,5 +33,18 @@ int main()
 
 	// for (unsigned i = 0; i <= 100; ++i)
 	// 	cout << i << "\t: " << combination(200, i) << endl;
+
+	uInt b = fibonacci(10000);
+	cout << b.sciNote() << endl;
+	for (unsigned i = 40000; i <= 50000; i += 1)
+	{
+		uInt a(i); // = fibonacci(i);
+		uInt c = (b / a) * a;
+		if (!c.between(b - a, b, false, true))
+			cout << endl
+				 << (c <= b - a) << endl;
+		cout << i << ' ';
+	}
+	cout << endl;
 	return 0;
 }
