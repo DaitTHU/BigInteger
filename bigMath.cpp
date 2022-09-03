@@ -6,7 +6,7 @@ uInt exp2(const uInt &A)
     static const unit exp_2[] = {
         1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384,
         32768, 65536, 131072, 262144, 524288, 1048576, 2097152, 4194304,
-        8388608, 16777216, 33554432, 67108864, 134217728, 268435456, 536870912};
+        8388608, 16777216, 33554432, 67108864, 134217728, 268435456, 536'870'912};
     if (A < 30)
         return uInt(exp_2[unit(A)]);
     uInt expo = uInt(exp_2[29]) * 2;
@@ -28,7 +28,15 @@ uInt exp2(const uInt &A)
     return expo;
 }
 
-
+uInt exp10(const uInt &A)
+{
+    static const unit exp_10[] = {1, 10, 100, 1'000, 10'000, 100'000,
+                                  1'000'000, 10'000'000, 100'000'000};
+    auto section = A.divmod(9); // uInt::LEN
+    vector<unit> expo(twin(section.first) + 1, 0);
+    expo.back() = exp_10[unit(section.second)];
+    return uInt(expo);
+}
 
 uInt factorial(unsigned n)
 {

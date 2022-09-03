@@ -6,10 +6,21 @@
 #include <iomanip>   // setw, setfill
 using namespace std;
 
+#define LOG10_2_32_9 241726409 / 225843117
 #define LOG2_10 1079882313 / 325076968 // DO NOT TOUCH
 
 char uInt::delimiter = ',';
 unsigned uInt::interval = uInt::LEN;
+
+uInt::uInt(const twin &_num)
+{
+    static constexpr twin max = static_cast<twin>(MAX);
+    if (_num < max)
+        num.push_back(static_cast<unit>(_num));
+    else
+        for (twin carry = _num; carry > 0; carry /= max)
+            num.push_back(static_cast<unit>(carry % max));
+}
 
 uInt::uInt(const string &_num)
 {
@@ -106,6 +117,15 @@ uInt uInt::operator^(const uInt &A) const
     return expo;
 }
 
+uInt &uInt::operator>>=(const uInt &A)
+{
+    auto section = A.divmod(9);
+    if (section.first >= size())
+        return *this = 0;
+    for (unsigned i = 0; i < section.first; ++i)
+        num[i] = num[i + section.first[0]];
+}
+
 ostream &operator<<(ostream &os, const uInt &A)
 {
     if (uInt::interval == 3) // this is really a piece of sheet!
@@ -195,7 +215,9 @@ pair<uInt, uInt> uInt::divmod(const uInt &A) const
     if (*this < A)
         return pair<uInt, uInt>(0, *this);
     return pair<uInt, uInt>(0, *this); // to be cancelled.
-
+    unit attempt = ((static_cast<twin>(MAX) * static_cast<twin>(num.back()) +
+                     static_cast<twin>(num[num.size() - 2])) /
+                    A.num.back());
 }
 
 /** @brief approx. to power of 2
@@ -242,10 +264,10 @@ string uInt::toString(const unsigned &base, const bool &suffix) const
             str += "(10)";
         return str;
     }
-    //else if (base == 2)
+    // else if (base == 2)
     //{
-    //    string str = "";
-    //}
+    //     string str = "";
+    // }
     assert(base <= 37);
     static const char alphaBet[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     pair<uInt, uInt> qr = divmod(base);
@@ -287,8 +309,10 @@ uInt uInt::length(const unsigned &base) const
 {
     if (base == 10)
     {
+        static const unit exp_10[] = {1, 10, 100, 1'000, 10'000, 100'000,
+                                      1'000'000, 10'000'000, 100'000'000};
         uInt len = LEN * (size() - 1);
-        for (uInt expo = 1; expo <= num.back(); expo *= 10)
+        for (unsigned i = 0; exp_10[i] <= num.back(); ++i)
             ++len;
         return len;
     }
@@ -307,18 +331,22 @@ uInt uInt::length(const unsigned &base) const
 
 void uInt::normalize()
 {
-    unit carry = 0;
+    twin carry = 0, max = static_cast<twin>(MAX);
     for (unsigned i = 0; i < num.size(); ++i)
-        num[i] = adder(num[i], 0, carry);
-    if (carry > 0)
-        num.push_back(carry);
-    else
     {
-        while (num.back() == 0)
-            num.pop_back();
-        if (num.empty())
-            num.push_back(0);
+        twin c = static_cast<twin>(num[i]) + carry;
+        carry = c / max;
+        num[i] = static_cast<unit>(c % max);
     }
+    if (carry > 0)
+    {
+        num.push_back(carry);
+        return;
+    }
+    while (num.back() == 0)
+        num.pop_back();
+    if (num.empty())
+        num.push_back(0);
 }
 
 /** @brief a + b + inCarry = c & outCarry. */

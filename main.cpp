@@ -24,7 +24,7 @@ int main()
 		 << factorial(10000).toString(16).length() / 8 << endl;
 	*/
 
-	uInt h = exp2(64);
-	cout << h.sciNote(20) << endl;
+	// uInt h = exp2(64);
+	cout << uInt(13971'72650'63423'4223) << endl;
 	return 0;
 }

@@ -13,14 +13,14 @@ class uInt
 {
 protected:
 	std::vector<unit> num{};
-	static const unit LEN = 9;			   // utilization: 9 / (32lg2) = 93.4%
+	static const unit LEN = 9;             // utilization: 9 / (32lg2) = 93.4%
 	static const unit MAX = 1'000'000'000; // 0x100000000 = 4'294'967'296
 	static char delimiter;
 	static unsigned interval;
 
 public:
 	uInt(){};
-	uInt(const unit &_num) { num.push_back(_num); }
+	uInt(const twin &_num);
 	uInt(const std::vector<unit> &_num) : num(_num) {}
 	uInt(std::vector<unit> &&_num) : num(std::move(_num)) {}
 	uInt(const std::string &_num);
@@ -37,7 +37,9 @@ public:
 	uInt operator*(const uInt &A) const;
 	uInt operator/(const uInt &A) const { return divmod(A).first; }
 	uInt operator%(const uInt &A) const { return divmod(A).second; }
-	uInt operator^(const uInt &A) const; 
+	uInt operator^(const uInt &A) const;
+	uInt &operator>>=(const uInt &A);
+	uInt &operator<<=(const uInt &A);
 	uInt &operator&=(const uInt &A) = delete;
 	uInt &operator|=(const uInt &A) = delete;
 	// unary arithmetic
@@ -45,7 +47,9 @@ public:
 	uInt operator-() = delete; // sorry, can't return Int.
 	uInt operator~() = delete;
 	template <typename T>
-	explicit operator T() const { return num[0]; }
+	explicit operator T() const { return static_cast<T>(num[0]); }
+	explicit operator twin() const { return size() > 1 ? static_cast<twin>(MAX) *
+		static_cast<twin>(num[1]) + static_cast<twin>(num[0]) : static_cast<twin>(num[0]); }
 	// derivative
 	bool operator>(const uInt &A) const { return A < *this; }
 	bool operator>=(const uInt &A) const { return !(*this < A); }
@@ -89,7 +93,7 @@ public:
 	std::pair<uInt, uInt> approxPo2() const;
 	uInt sqrt() const;
 	std::string toString(const unsigned &base = 10, const bool &suffix = false) const;
-	std::string sciNote(unit deciLength = LEN) const; // if should for ostream, not string?
+	std::string sciNote(unit deciLength = LEN) const; // whether should for ostream, not string?
 	uInt sub(const unsigned &begin = 0, const unsigned &end = MAX) const;
 	uInt length(const unsigned &base = 10) const;
 
@@ -101,7 +105,6 @@ private:
 	unit suber(const unit &a, const unit &b, bool &borrow) const;
 	void muler(const unit &a, const unit &b, unit &p, unit &carry) const;
 	unit diver(const unit &a, const unit &b, unit &remainder) const;
-	std::vector<unit> cut(unsigned begin = 0, unsigned length = 1) const { return std::vector<unit>(num.begin() + begin, num.begin() + begin + length); }
 };
 
 class Int : public uInt
