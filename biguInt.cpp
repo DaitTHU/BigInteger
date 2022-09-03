@@ -129,6 +129,29 @@ uInt uInt::operator*(const uInt &A) const
     return uInt(prod);
 }
 
+uInt &uInt::operator/=(const unit &_num)
+{
+    if (*this < _num)
+        return *this = 0;
+    unit remainder = 0;
+    for (int i = size() - 1; i >= 0; --i)
+        num[i] = diver(num[i], _num, remainder);
+    while (num.back() == 0 && size() > 1)
+        num.pop_back();
+    return *this;
+}
+
+uInt &uInt::operator%=(const unit &_num)
+{
+    if (*this < _num)
+        return *this = 0;
+    unit remainder = 0;
+    for (int i = size() - 1; i >= 0; --i)
+        num[i] = diver(num[i], _num, remainder);
+    num.resize(1, remainder);
+    return *this;
+}
+
 uInt uInt::operator^(const uInt &A) const
 {
     uInt expo = *this; // exponent
@@ -291,22 +314,19 @@ pair<uInt, uInt> uInt::divmod(const uInt &A) const
         return pair<uInt, uInt>(0, *this);
     // attempt div, result Quot >= real Q
     unit exceedLen = A.length() - LEN;
-    uInt maxQ = (*this >> exceedLen).divmod((A >> exceedLen)[0]).first + 1;
-    // return pair<uInt, uInt>(maxQ, *this - maxQ * A);
+    uInt maxQ = (*this >> exceedLen).divmod((A >> exceedLen)[0]).first;
     if (*this == maxQ * A)
         return pair<uInt, uInt>(maxQ, 0);
-    // real Q >= maxQ * MAX / (MAX + 1)
-    if (maxQ <= static_cast<uInt>(MAX)) // minQ = maxQ <= MAX
-        return pair<uInt, uInt>(maxQ, *this - maxQ * A);
+    // real Q > maxQ * MAX / (MAX + 1)
     // here couldn't div (MAX + 1), replace smaller (MAX - 1) / MAX
-    uInt minQ = ((maxQ * static_cast<uInt>(MAX - 10)) >> LEN);
+    uInt minQ = ((maxQ * static_cast<uInt>(MAX - 8)) >> LEN);
     while (minQ + 1 < maxQ) // *this < maxQ * A
     {
-        uInt midQ = (maxQ + minQ) / 2;
-        uInt midQA = midQ * A;
-        if (*this > midQA)
+        uInt midQ = (maxQ + minQ).divmod(2).first;
+        uInt QA = midQ * A;
+        if (*this > QA)
             minQ = move(midQ);
-        else if (*this < midQA)
+        else if (*this < QA)
             maxQ = move(midQ);
         else
             return pair<uInt, uInt>(midQ, 0);

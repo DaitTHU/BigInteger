@@ -36,15 +36,24 @@ int main()
 
 	uInt b = fibonacci(10000);
 	cout << b.sciNote() << endl;
-	for (unsigned i = 40000; i <= 50000; i += 1)
+
+	for (unsigned i = 1; i <= 100; i += 1)
 	{
-		uInt a(i); // = fibonacci(i);
+		uInt a = fibonacci(i);
 		uInt c = (b / a) * a;
 		if (!c.between(b - a, b, false, true))
-			cout << endl
-				 << (c <= b - a) << endl;
-		cout << i << ' ';
+			cout << i << ' ' << (c <= b - 2*a) << endl;
 	}
-	cout << endl;
+
+	// uInt a = fibonacci(45);
+	// uInt c = (b >> 1).divmod(unit(a >> 1)).first;
+	// uInt d = (c * static_cast<uInt>(1'000'000'000 - 1)).divmod(1'000'000'000).first;
+	// uInt e = (b / a);
+	// cout << c.sciNote() << endl
+	// 	 << (c - d).sciNote() << endl
+	// 	 << (c - e);
+	// cout << a.sciNote() << endl
+	// 	 << (b - c).sciNote();
+	// cout << endl;
 	return 0;
 }

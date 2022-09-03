@@ -37,6 +37,8 @@ public:
 	uInt &operator+=(const uInt &A);
 	uInt &operator-=(const uInt &A);
 	uInt operator*(const uInt &A) const;
+	uInt &operator/=(const unit &_num);
+	uInt &operator%=(const unit &_num);
 	uInt operator/(const uInt &A) const { return divmod(A).first; }
 	uInt operator%(const uInt &A) const { return divmod(A).second; }
 	uInt operator^(const uInt &A) const;
@@ -93,7 +95,6 @@ public:
 	static void setDelimiter(const char &_c = ',', const unsigned &_interval = LEN);
 	// others
 	bool between(const uInt &A, const uInt &B, bool includeA = true, bool includeB = false) const;
-	uInt half(const uInt &A, const uInt &B);
 	std::pair<uInt, unit> divmod(const unit &_num) const;
 	std::pair<uInt, uInt> divmod(const uInt &A) const;
 	std::pair<uInt, unit> approxExp2() const;
