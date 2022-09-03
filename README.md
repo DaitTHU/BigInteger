@@ -57,6 +57,8 @@ b /= uInt("1145141919810"); // 1078091605637804892 (TODO)
 uInt g = b ^ 3;             // exponent, e.g. 2^4 = 16.
 std::cout << g << std::endl; 
 >>> 1,253045939,477188663,853722164,624612006,875048962,971300288
+std::cout << (g >> 43) << std::endl; // shift for base-10
+>>> 125,304593947
 ```
 ⚠️ **WARNING 1:** ⚠️ Directly operating `uInt` with `string` is strongly discouraged. ~~It's **NOT** JavaScript.~~
 

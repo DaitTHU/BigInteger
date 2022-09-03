@@ -165,6 +165,8 @@ uInt &uInt::operator>>=(const uInt &A)
         nextRemainder = *digit % divisor; // wasted in the last step
         *digit = *digit / divisor + prevRemainder * multiplier;
     }
+    if (num.back() == 0 && num.size() > 1)
+        num.pop_back();
     return *this;
 }
 
