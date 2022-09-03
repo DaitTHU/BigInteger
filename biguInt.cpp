@@ -300,11 +300,11 @@ pair<uInt, uInt> uInt::approxExp2() const
     if (*this == 0)
         return pair<uInt, uInt>(0, 0);
     uInt len = LEN * (size() - 1);
-    unit exp10;
-    for (exp10 = 1; exp10 <= num.back(); exp10 *= 10)
+    unsigned i = 1;
+    for (; exp_10[i] <= num.back(); ++i)
         ++len;
-    unit firstNum = num.back() / (exp10 / 10);
-    uInt power = log2_[firstNum] + (len - 1) * LOG2_10; // error: -1 ~ 0
+    unit firstNum = num.back() / exp_10[i - 1];
+    uInt power = log2_[firstNum] + len * LOG2_10; // error: -1 ~ 0
     uInt expo = exp2(power), expo2 = expo * 2;
     if (*this < expo2)
         return pair<uInt, uInt>(expo, power);
@@ -370,7 +370,7 @@ string uInt::sciNote(unit deciLength) const
     return str.substr(0, 2 + deciLength) + " x 10^" + to_string(power);
 }
 
-uInt uInt::sub(const unsigned &begin, const unsigned &end) const
+uInt uInt::subInt(const unsigned &begin, const unsigned &end) const
 {
     auto back = (end <= size() ? num.begin() + end : num.end());
     return uInt(vector<unit>(num.begin() + begin, back));
@@ -381,9 +381,9 @@ uInt uInt::length(const unsigned &base) const
     if (base == 10)
     {
         uInt len = LEN * (size() - 1);
-        for (unsigned i = 0; exp_10[i] <= num.back(); ++i)
+        for (unsigned i = 1; exp_10[i] <= num.back(); ++i)
             ++len;
-        return len;
+        return len + 1;
     }
     else if (base == 2)
         return approxExp2().second;

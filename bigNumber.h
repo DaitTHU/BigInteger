@@ -99,7 +99,7 @@ public:
 	uInt sqrt() const;
 	std::string toString(const unsigned &base = 10, const bool &suffix = false) const;
 	std::string sciNote(unit deciLength = LEN) const; // whether should for ostream, not string?
-	uInt sub(const unsigned &begin = 0, const unsigned &end = MAX) const;
+	uInt subInt(const unsigned &begin = 0, const unsigned &end = MAX) const;
 	uInt length(const unsigned &base = 10) const;
 
 private:
