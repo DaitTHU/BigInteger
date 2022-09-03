@@ -41,21 +41,34 @@ bool uInt::operator<(const uInt &A) const
     return false;
 }
 
-uInt uInt::operator-(const uInt &A) const
+uInt &uInt::operator+=(const uInt &A)
 {
-    if (*this <= A)
-        return uInt(0);
-    vector<unit> diff(size()); // difference
+    unit carry = 0, i;
+    if (size() < A.size())
+        num.resize(A.size(), 0);
+    for (i = 0; i < A.num.size(); ++i)
+        num[i] = adder(num[i], A[i], carry);
+    for (; i < num.size(); ++i)
+        num[i] = adder(num[i], 0, carry);
+    if (carry > 0)
+        num.push_back(carry);
+    return *this;
+}
+
+uInt &uInt::operator-=(const uInt &A)
+{
+    if (*this == A) // guarantee *this >= A for effi.
+        return *this = 0;
     bool carry = false;
     for (unsigned i = 0; i < A.size(); ++i)
-        diff[i] = suber(num[i], A[i], carry);
+        num[i] = suber(num[i], A[i], carry);
     for (unsigned i = A.size(); i < size(); ++i)
-        diff[i] = suber(num[i], 0, carry);
+        num[i] = suber(num[i], 0, carry);
     if (carry)
-        --diff.back();
-    while (diff.back() == 0)
-        diff.pop_back();
-    return uInt(diff);
+        --num.back();
+    while (num.back() == 0)
+        num.pop_back();
+    return *this;
 }
 
 uInt uInt::operator*(const uInt &A) const
@@ -174,6 +187,7 @@ pair<uInt, uInt> uInt::divmod(const unit &divident) const
     return pair<uInt, uInt>(quot, remainder);
 }
 
+/** @return pair(quotient, remainder) */
 pair<uInt, uInt> uInt::divmod(const uInt &A) const
 {
     if (A.size() < 2) // if A.empty will throw errro
@@ -181,6 +195,7 @@ pair<uInt, uInt> uInt::divmod(const uInt &A) const
     if (*this < A)
         return pair<uInt, uInt>(0, *this);
     return pair<uInt, uInt>(0, *this); // to be cancelled.
+
 }
 
 /** @brief approx. to power of 2
@@ -203,6 +218,16 @@ pair<uInt, uInt> uInt::approxPo2() const
         return pair<uInt, uInt>(expo2, power + 1);
 }
 
+uInt uInt::sqrt() const
+{
+    if (*this < 2)
+        return *this;
+    uInt sqrtA = vector<unit>(size() / 2 + 1, 0);
+    while (*this < sqrtA * sqrtA)
+        sqrtA = (sqrtA + *this / sqrtA) / 2;
+    return sqrtA;
+}
+
 string uInt::toString(const unsigned &base, const bool &suffix) const
 {
     if (base == 10)
@@ -217,10 +242,10 @@ string uInt::toString(const unsigned &base, const bool &suffix) const
             str += "(10)";
         return str;
     }
-    else if (base == 2)
-    {
-        string str = "";
-    }
+    //else if (base == 2)
+    //{
+    //    string str = "";
+    //}
     assert(base <= 37);
     static const char alphaBet[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     pair<uInt, uInt> qr = divmod(base);
@@ -326,18 +351,4 @@ inline unit uInt::diver(const unit &a, const unit &b, unit &remainder) const
     twin c = static_cast<twin>(MAX) * static_cast<twin>(remainder) + static_cast<twin>(a);
     remainder = static_cast<unit>(c % b);
     return static_cast<unit>(c / b);
-}
-
-/** @brief left add, num.size() >= A.num.size() */
-uInt uInt::lAdd(const uInt &A) const
-{
-    vector<unit> sum(num.size());
-    unit carry = 0;
-    for (unsigned i = 0; i < A.num.size(); ++i)
-        sum[i] = adder(num[i], A.num[i], carry);
-    for (unsigned i = A.num.size(); i < num.size(); ++i)
-        sum[i] = adder(num[i], 0, carry);
-    if (carry > 0)
-        sum.push_back(carry);
-    return uInt(sum);
 }

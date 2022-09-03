@@ -1,6 +1,8 @@
 *.o
 *.exe
 makefile
+test
 test.*
 .vscode
 main.*
+w
