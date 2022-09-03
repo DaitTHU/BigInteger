@@ -25,6 +25,7 @@ int main()
 	*/
 
 	// uInt h = exp2(64);
-	cout << uInt(13971'72650'63423'4223) << endl;
+	uInt A(-100, true);
+	cout << A << endl;
 	return 0;
 }

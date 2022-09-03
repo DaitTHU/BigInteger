@@ -42,6 +42,21 @@ uInt::uInt(const string &_num)
     num.push_back(stoi(_num.substr(0, pos + LEN)));
 }
 
+uInt::operator twin() const
+{
+    static constexpr twin max = static_cast<twin>(MAX);
+    switch (size())
+    {
+    case 1:
+        return static_cast<twin>(num[0]);
+    case 2:
+        return max * static_cast<twin>(num[1]) + static_cast<twin>(num[0]);
+    default:
+        return max * max * static_cast<twin>(num[2]) +
+               max * static_cast<twin>(num[1]) + static_cast<twin>(num[0]);
+    }
+}
+
 bool uInt::operator<(const uInt &A) const
 {
     if (size() != A.size())
@@ -123,7 +138,7 @@ uInt &uInt::operator>>=(const uInt &A)
     if (section.first >= size())
         return *this = 0;
     for (unsigned i = 0; i < section.first; ++i)
-        num[i] = num[i + section.first[0]];
+        num[i] = num[i + twin(section.first)];
 }
 
 ostream &operator<<(ostream &os, const uInt &A)

@@ -8,6 +8,7 @@
 typedef uint32_t unit; // 4 bytes
 typedef uint64_t twin;
 typedef int32_t snit; // unit: unsigned; snit: signed - make sense!
+typedef int64_t swin;
 
 class uInt
 {
@@ -21,6 +22,7 @@ protected:
 public:
 	uInt(){};
 	uInt(const twin &_num);
+	uInt(const swin &_num, const bool &sign) : uInt(sign ? _num : -_num) {}
 	uInt(const std::vector<unit> &_num) : num(_num) {}
 	uInt(std::vector<unit> &&_num) : num(std::move(_num)) {}
 	uInt(const std::string &_num);
@@ -48,8 +50,7 @@ public:
 	uInt operator~() = delete;
 	template <typename T>
 	explicit operator T() const { return static_cast<T>(num[0]); }
-	explicit operator twin() const { return size() > 1 ? static_cast<twin>(MAX) *
-		static_cast<twin>(num[1]) + static_cast<twin>(num[0]) : static_cast<twin>(num[0]); }
+	explicit operator twin() const;
 	// derivative
 	bool operator>(const uInt &A) const { return A < *this; }
 	bool operator>=(const uInt &A) const { return !(*this < A); }
@@ -114,7 +115,7 @@ protected:
 
 public:
 	Int(){};
-	Int(const snit &_num) : uInt(abs(_num)), p(_num >= 0) {}
+	Int(const int64_t &_num) : uInt(abs(_num)), p(_num >= 0) {}
 	Int(const std::vector<unit> &_num, bool _p = true) : uInt(_num), p(_p) {}
 	Int(const uInt &A, bool _p = true) : uInt(A), p(_p) {}
 	Int(uInt &&A, bool _p = true) : uInt(A), p(_p) {}

@@ -4,7 +4,7 @@ Have you ever imaged how to calculate `1000!` in `C++`? Well, actually
 
 $$1000! = 4.0238726 \times 10^{2567},$$
 
-so it absolutely exceeds the limit of `int` even `unsigned long long` (which is merely `1e19`). But, luckily, `C++` provide us with `array`, so it's possible to combine multiple `int` to expand the boundaries of the representable range. Comparing to ordinary `C array`, the `stl vector` is obviously more convenient, and that's how I realize the Big-Number in `C++`.
+so it absolutely exceeds the limit of `int` even `unsigned long long` (which is merely `1e20`). But, luckily, `C++` provide us with `array`, so it's possible to combine multiple `int` to expand the boundaries of the representable range. Comparing to ordinary `C array`, the `stl vector` is obviously more convenient, and that's how I realize the Big-Number in `C++`.
 
 ## `bigNumber.h`
 
@@ -16,11 +16,19 @@ You can create a `uInt` object by `int`, `char*` and `string`:
 
 ```cpp
 uInt a = 65472;
+uInt A = 12345678901234567890ULL; // support unsigned long long
 uInt b("1234567891011121314151617181920");
 // uInt b = "1234567891011121314151617181920"; // error: can't tell char* from int
 uInt c = b, d;
 std::cout << "You can also input the number you want: ";
 std::cin >> d;
+```
+
+**WARNING:** If you directly assign `uInt` with a negative number, it'll convert to `unsigned long long` before taken into the constructor. If you have to do that, use `uInt(long long _num, bool sign)`:
+
+```cpp
+uInt largeNegative = -100;       // 18446744073709551516
+uInt smallPositive(-100, false); // 100, you should guarantee the sign
 ```
 
 For `string`-constructor, `strings` can only consist of numbers and leading signs (which will be omitted).
