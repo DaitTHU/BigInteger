@@ -32,9 +32,9 @@ uInt exp10(const uInt &A)
 {
     static const unit exp_10[] = {1, 10, 100, 1'000, 10'000, 100'000,
                                   1'000'000, 10'000'000, 100'000'000};
-    auto section = A.divmod(9); // uInt::LEN
-    vector<unit> expo(twin(section.first) + 1, 0);
-    expo.back() = exp_10[unit(section.second)];
+    auto section = static_cast<pair<twin, unit>>(A.divmod(9)); // uInt::LEN
+    vector<unit> expo(section.first + 1, 0);
+    expo.back() = exp_10[section.second];
     return uInt(expo);
 }
 

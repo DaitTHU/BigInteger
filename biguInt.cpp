@@ -6,8 +6,12 @@
 #include <iomanip>   // setw, setfill
 using namespace std;
 
-#define LOG10_2_32_9 241726409 / 225843117
-#define LOG2_10 1079882313 / 325076968 // DO NOT TOUCH
+static const unsigned short log2_[] = {0, 0, 1, 1, 2, 2, 2, 2, 3, 3};
+static const unit exp_10[] = {1, 10, 100, 1'000, 10'000, 100'000, 1'000'000, 10'000'000, 100'000'000};
+static const char alphaBet[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+#define LOG10_2_32_9 241726409 / 225843117 // 32 * lg2 / 9
+#define LOG2_10 1079882313 / 325076968     // DO NOT TOUCH
 
 char uInt::delimiter = ',';
 unsigned uInt::interval = uInt::LEN;
@@ -29,6 +33,7 @@ uInt::uInt(const string &_num)
         *this = uInt(_num.substr(1)); // omit sign
         return;
     }
+    bool nonzero = false;
     for (auto &digit : _num)
         if (digit < '0' || digit > '9')
         {
@@ -36,10 +41,19 @@ uInt::uInt(const string &_num)
             num.push_back(0);
             return;
         }
+        else if (digit != '0')
+            nonzero = true;
+    if (!nonzero) // all 0
+    {
+        num.push_back(0);
+        return;
+    }
     int pos;
     for (pos = _num.length() - LEN; pos > 0; pos -= LEN)
         num.push_back(stoi(_num.substr(pos, LEN)));
     num.push_back(stoi(_num.substr(0, pos + LEN)));
+    while (num.back() == 0)
+        num.pop_back();
 }
 
 uInt::operator twin() const
@@ -134,11 +148,50 @@ uInt uInt::operator^(const uInt &A) const
 
 uInt &uInt::operator>>=(const uInt &A)
 {
-    auto section = A.divmod(9);
+    auto section = static_cast<pair<twin, twin>>(A.divmod(9));
     if (section.first >= size())
         return *this = 0;
-    for (unsigned i = 0; i < section.first; ++i)
-        num[i] = num[i + twin(section.first)];
+    else if (section.first > 0)
+        for (twin i = 0; i < size() - section.first; ++i)
+            num[i] = num[i + section.first];
+    num.resize(size() - section.first);
+    if (section.second == 0)
+        return *this;
+    unit divisor = exp_10[section.second], multiplier = exp_10[LEN - section.second];
+    unit nextRemainder = 0;
+    for (auto digit = num.rbegin(); digit != num.rend(); ++digit)
+    {
+        unit prevRemainder = nextRemainder;
+        nextRemainder = *digit % divisor; // wasted in the last step
+        *digit = *digit / divisor + prevRemainder * multiplier;
+    }
+    return *this;
+}
+
+uInt &uInt::operator<<=(const uInt &A)
+{
+    auto section = static_cast<pair<twin, twin>>(A.divmod(9));
+    if (section.first > 0)
+    {
+        num.resize(size() + section.first);
+        for (twin i = size(); i >= section.first; --i)
+            num[i] = num[i - section.first];
+        for (twin i = 0; i < section.first; ++i)
+            num[i] = 0;
+    }
+    if (section.second == 0)
+        return *this;
+    unit divisor = exp_10[LEN - section.second], multiplier = exp_10[section.second];
+    unit nextCarry = 0;
+    for (twin i = section.first; i < size(); ++i)
+    {
+        unit prevCarry = nextCarry;
+        nextCarry = num[i] / divisor; // wasted in the last step
+        num[i] = num[i] % divisor * multiplier + prevCarry;
+    }
+    if (nextCarry > 0)
+        num.push_back(nextCarry);
+    return *this;
 }
 
 ostream &operator<<(ostream &os, const uInt &A)
@@ -199,13 +252,17 @@ void uInt::setDelimiter(const char &_c, const unsigned &_interval)
 
 bool uInt::between(const uInt &A, const uInt &B, bool includeA, bool includeB) const
 {
-    if (includeA && !includeB)
-        return operator>=(A) && operator<(B); // A <= x < B
-    else if (includeA && includeB)
-        return operator>=(A) && operator<=(B); // A <= x <= B
-    else if (!includeA && !includeB)
-        return operator>(A) && operator<(B); // A < x < B
-    return operator>(A) && operator<=(B);    // A < x <= B
+    switch (includeA << 1 & includeB)
+    {
+    case 0b10:
+        return (A <= *this) && (*this < B);
+    case 0b11:
+        return (A <= *this) && (*this <= B);
+    case 0b00:
+        return (A < *this) && (*this < B);
+    default:
+        return (A < *this) && (*this <= B);
+    }
 }
 
 pair<uInt, uInt> uInt::divmod(const unit &divident) const
@@ -230,9 +287,7 @@ pair<uInt, uInt> uInt::divmod(const uInt &A) const
     if (*this < A)
         return pair<uInt, uInt>(0, *this);
     return pair<uInt, uInt>(0, *this); // to be cancelled.
-    unit attempt = ((static_cast<twin>(MAX) * static_cast<twin>(num.back()) +
-                     static_cast<twin>(num[num.size() - 2])) /
-                    A.num.back());
+    // unit attempt = ((static_cast<twin>(MAX) * static_cast<twin>(num.back()) + static_cast<twin>(num[num.size() - 2])) / A.num.back());
 }
 
 /** @brief approx. to power of 2
@@ -246,7 +301,6 @@ pair<uInt, uInt> uInt::approxPo2() const
     for (exp10 = 1; exp10 <= num.back(); exp10 *= 10)
         ++len;
     unit firstNum = num.back() / (exp10 / 10);
-    static const unsigned short log2_[] = {0, 0, 1, 1, 2, 2, 2, 2, 3, 3};
     uInt power = log2_[firstNum] + (len - 1) * LOG2_10; // error: -1 ~ 0
     uInt expo = exp2(power), expo2 = expo * 2;
     if (*this < expo2)
@@ -284,7 +338,6 @@ string uInt::toString(const unsigned &base, const bool &suffix) const
     //     string str = "";
     // }
     assert(base <= 37);
-    static const char alphaBet[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     pair<uInt, uInt> qr = divmod(base);
     string str(1, alphaBet[unit(qr.second)]);
     while (qr.first != 0)
@@ -324,8 +377,6 @@ uInt uInt::length(const unsigned &base) const
 {
     if (base == 10)
     {
-        static const unit exp_10[] = {1, 10, 100, 1'000, 10'000, 100'000,
-                                      1'000'000, 10'000'000, 100'000'000};
         uInt len = LEN * (size() - 1);
         for (unsigned i = 0; exp_10[i] <= num.back(); ++i)
             ++len;

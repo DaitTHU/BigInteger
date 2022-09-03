@@ -56,12 +56,14 @@ public:
 	bool operator>=(const uInt &A) const { return !(*this < A); }
 	bool operator<=(const uInt &A) const { return !(A < *this); }
 	bool operator!=(const uInt &A) const { return !(*this == A); }
-	uInt operator+(const uInt &A) const { uInt sum = *this; return sum += A; }
-	uInt operator-(const uInt &A) const { uInt diff = *this; return diff -= A; }
+	uInt operator+(const uInt &A) const { return uInt(*this) += A; }
+	uInt operator-(const uInt &A) const { return uInt(*this) -= A; }
 	uInt &operator*=(const uInt &A) { return *this = *this * A; }
 	uInt &operator/=(const uInt &A) { return *this = *this / A; }
 	uInt &operator%=(const uInt &A) { return *this = *this % A; }
 	uInt &operator^=(const uInt &A) { return *this = *this ^ A; }
+	uInt operator>>(const uInt &A) const { return uInt(*this) >>= A; }
+	uInt operator<<(const uInt &A) const { return uInt(*this) <<= A; }
 	uInt operator&(const uInt &A) const = delete;
 	uInt operator|(const uInt &A) const = delete;
 	// right relational
@@ -78,6 +80,8 @@ public:
 	friend uInt operator/(const unit _num, const uInt &A) { return uInt(_num) / A; }
 	friend uInt operator%(const unit _num, const uInt &A) { return uInt(_num) % A; }
 	friend uInt operator^(const unit _num, const uInt &A) { return uInt(_num) ^ A; }
+	friend uInt operator>>(const unit _num, const uInt &A) { return uInt(_num) >> A; }
+	friend uInt operator<<(const unit _num, const uInt &A) { return uInt(_num) << A; }
 	// ++/--
 	uInt operator++() { return *this += 1; }
 	uInt operator++(int) { return *this += 1; } // may change, i don't konw.
@@ -100,7 +104,7 @@ public:
 
 private:
 	unit operator[](const unit &i) const { return num[i]; }
-	unit size() const { return num.size(); }
+	twin size() const { return num.size(); }
 	void normalize();
 	unit adder(const unit &a, const unit &b, unit &carry) const;
 	unit suber(const unit &a, const unit &b, bool &borrow) const;

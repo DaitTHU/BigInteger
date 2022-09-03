@@ -25,7 +25,9 @@ int main()
 	*/
 
 	// uInt h = exp2(64);
-	uInt A(-100, true);
+	uInt A("1234567890123456789012345678901234567890");
 	cout << A << endl;
+	A <<= 13;
+	cout << (123456 << uInt(100)).sciNote() << endl;
 	return 0;
 }
