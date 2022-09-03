@@ -121,7 +121,7 @@ Polynomial, consisting of multiple `Real` coefficients.
 this `.h` has some math functions. 
 
 ```cpp
-// exp2(A) returns 2^A
+// exp2(A) returns 2^A, much faster than (2 ^ A)
 std::cout << exp2(114514).sciNote() << std::endl;
 >>> 1.409040464 x 10^34472
 

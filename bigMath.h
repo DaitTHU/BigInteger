@@ -3,15 +3,15 @@
 #include "bigNumber.h"
 
 /** @return 2^A */
-uInt exp2(const uInt &A);
+uInt exp2(const uInt &N);
 
-uInt exp10(const uInt &A);
+uInt exp10(const uInt &N);
 
 /** @return largest 2^n that <= A */
-inline uInt exp2fit(const uInt &A) { return A.approxPo2().first; }
+inline uInt exp2fit(const uInt &A) { return A.approxExp2().first; }
 
 /** @return largest n that 2^n <= A */
-inline uInt log2(const uInt &A) { return A.approxPo2().second; }
+inline uInt log2(const uInt &A) { return A.approxExp2().second; }
 
 uInt sqrt(const uInt &A);
 
@@ -24,14 +24,18 @@ uInt exgcd(const uInt &A, const uInt &B);
 uInt lcm(const uInt &A, const uInt &B);
 
 /** @return n! */
-uInt factorial(unsigned n);
+uInt factorial(const uInt &N);
 
 /** @brief calculate the nth fibonacci number: \n
  * f(1) = f(2) = 1, f(n) = f(n-1) + f(n-2). */
-uInt fibonacci(unsigned n, bool startFrom0 = false);
+uInt fibonacci(const uInt &N, const bool &startFrom0 = false);
 
 bool isPrime(const uInt &A);
 
 uInt prime(const uInt &A);
+
+uInt permutation(const uInt &n, const uInt &k);
+
+uInt combination(const uInt &n, const uInt &k);
 
 #endif

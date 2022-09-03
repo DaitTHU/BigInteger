@@ -6,12 +6,13 @@
 #include <iomanip>   // setw, setfill
 using namespace std;
 
-static const unsigned short log2_[] = {0, 0, 1, 1, 2, 2, 2, 2, 3, 3};
-static const unit exp_10[] = {1, 10, 100, 1'000, 10'000, 100'000, 1'000'000, 10'000'000, 100'000'000};
-static const char alphaBet[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-
 #define LOG10_2_32_9 241726409 / 225843117 // 32 * lg2 / 9
 #define LOG2_10 1079882313 / 325076968     // DO NOT TOUCH
+
+static const unsigned short log2_[] = {0, 0, 1, 1, 2, 2, 2, 2, 3, 3};
+static const unit exp_10[] = {
+    1, 10, 100, 1'000, 10'000, 100'000, 1'000'000, 10'000'000, 100'000'000, 1'000'000'000};
+static const char alphabet[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
 char uInt::delimiter = ',';
 unsigned uInt::interval = uInt::LEN;
@@ -37,7 +38,7 @@ uInt::uInt(const string &_num)
     for (auto &digit : _num)
         if (digit < '0' || digit > '9')
         {
-            cout << "WARNING: N/A string in uInt constructor, set as 0." << endl;
+            cout << "WARNING: N/A string in constructor, set as 0." << endl;
             num.push_back(0);
             return;
         }
@@ -294,7 +295,7 @@ pair<uInt, uInt> uInt::divmod(const uInt &A) const
 
 /** @brief approx. to power of 2
  *  @return largest (2^n, n) that 2^n <= *this */
-pair<uInt, uInt> uInt::approxPo2() const
+pair<uInt, uInt> uInt::approxExp2() const
 {
     if (*this == 0)
         return pair<uInt, uInt>(0, 0);
@@ -341,11 +342,11 @@ string uInt::toString(const unsigned &base, const bool &suffix) const
     // }
     assert(base <= 37);
     pair<uInt, uInt> qr = divmod(base);
-    string str(1, alphaBet[unit(qr.second)]);
+    string str(1, alphabet[unit(qr.second)]);
     while (qr.first != 0)
     {
         qr = qr.first.divmod(base);
-        str += alphaBet[unit(qr.second)];
+        str += alphabet[unit(qr.second)];
     }
     reverse(str.begin(), str.end());
     if (suffix)
@@ -385,13 +386,13 @@ uInt uInt::length(const unsigned &base) const
         return len;
     }
     else if (base == 2)
-        return approxPo2().second;
+        return approxExp2().second;
     else if (base == 4)
-        return approxPo2().second / 2;
+        return approxExp2().second / 2;
     else if (base == 8)
-        return approxPo2().second / 3;
+        return approxExp2().second / 3;
     else if (base == 16)
-        return approxPo2().second / 4;
+        return approxExp2().second / 4;
     return toString(base).length(); // shit
 }
 

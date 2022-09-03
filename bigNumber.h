@@ -29,7 +29,7 @@ public:
 	uInt(const uInt &A) : num(A.num) {}
 	uInt(uInt &&A) = default;
 	virtual ~uInt() = default;
-	// basic: =, <, ==, +=, -=, *=, /=,...
+	// basic: =, <, ==, +=, -=,...
 	uInt &operator=(const uInt &A) { num = A.num; return *this; }
 	uInt &operator=(uInt &&A) { num = std::move(A.num); return *this; }
 	bool operator<(const uInt &A) const;
@@ -95,7 +95,7 @@ public:
 	bool between(const uInt &A, const uInt &B, bool includeA = true, bool includeB = false) const;
 	std::pair<uInt, uInt> divmod(const unit &_num) const;
 	std::pair<uInt, uInt> divmod(const uInt &A) const;
-	std::pair<uInt, uInt> approxPo2() const;
+	std::pair<uInt, uInt> approxExp2() const;
 	uInt sqrt() const;
 	std::string toString(const unsigned &base = 10, const bool &suffix = false) const;
 	std::string sciNote(unit deciLength = LEN) const; // whether should for ostream, not string?

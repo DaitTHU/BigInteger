@@ -1,68 +1,59 @@
 #include "bigMath.h"
 using namespace std;
 
-uInt exp2(const uInt &A)
+uInt exp2(const uInt &N)
 {
     static const unit exp_2[] = {
         1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384,
         32768, 65536, 131072, 262144, 524288, 1048576, 2097152, 4194304,
         8388608, 16777216, 33554432, 67108864, 134217728, 268435456, 536'870'912};
-    if (A < 30)
-        return uInt(exp_2[unit(A)]);
+    if (N < 30)
+        return uInt(exp_2[unit(N)]);
     uInt expo = uInt(exp_2[29]) * 2;
-    uInt power = 30;
-    while (true)
-    {
-        uInt power2 = power * 2;
-        if (power2 > A)
-            break;
-        expo *= expo; // quick
-        power = move(power2);
-    }
-    for (int i = 29; i > 0; --i)
-        while (power + i <= A)
-        {
-            expo *= exp_2[i];
-            power += i;
-        }
-    return expo;
+    unsigned power = 30;
+    for (; power * 2 <= N; power *= 2)
+        expo *= expo;
+    for (; power + 29 <= N; power += 29)
+        expo *= exp_2[29];
+    return power == N ? expo : expo * exp_2[unit(N) - power];
 }
 
-uInt exp10(const uInt &A)
+uInt exp10(const uInt &N)
 {
     static const unit exp_10[] = {1, 10, 100, 1'000, 10'000, 100'000,
                                   1'000'000, 10'000'000, 100'000'000};
-    auto section = static_cast<pair<twin, unit>>(A.divmod(9)); // uInt::LEN
+    auto section = static_cast<pair<twin, unit>>(N.divmod(9)); // uInt::LEN
     vector<unit> expo(section.first + 1, 0);
     expo.back() = exp_10[section.second];
     return uInt(expo);
 }
 
-uInt factorial(unsigned n)
+uInt factorial(const uInt &N)
 {
     uInt result = 1;
-    for (unsigned i = 2; i <= n; ++i)
+    for (unsigned i = 2; i <= N; ++i)
         result *= i;
     return result;
 }
 
-uInt fibonacci(unsigned n, bool startFrom0)
+uInt fibonacci(const uInt &N, const bool &startFrom0)
 {
-    if (startFrom0)
-        ++n;
-    if (n < 2)
-        return uInt(n);
+    static const uInt Fibon[] = {
+        0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, 987, 1597,
+        2584, 4181, 6765, 10946, 17711, 28657, 46368, 75025, 121393, 196418, 317811,
+        514229, 832040, 1346269, 2178309, 3524578, 5702887, 9227465, 14930352, 24157817,
+        39088169, 63245986, 102334155, 165580141, 267914296, 433494437, 701408733};
+    unit n = static_cast<unit>(N) + startFrom0;
+    if (n < 45)
+        return Fibon[n];
     uInt a = fibonacci(n / 2);
-    uInt b = fibonacci(n / 2 - 1);
     if (n % 2)
-    {
-        b += a;
-        return b * b + a * a; // f(2k+1) = f(k+1)^2 + f(k)^2
-    }
-    return a * (a + 2 * b); // f(2k) = f(k) * (f(k) + 2f(k-1))
+        return (fibonacci(n / 2 + 1) ^ 2) + (a ^ 2); // f(2k+1) = f(k+1)^2 + f(k)^2
+    else
+        return a * (a + 2 * fibonacci(n / 2 - 1)); // f(2k) = f(k) * (f(k) + 2f(k-1))
 }
 
-uInt prime(const uInt &A)
+uInt prime(const uInt &N)
 {
     static const unsigned short Prime[] = {
         2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67,
@@ -72,7 +63,35 @@ uInt prime(const uInt &A)
         307, 311, 313, 317, 331, 337, 347, 349, 353, 359, 367, 373, 379, 383,
         389, 397, 401, 409, 419, 421, 431, 433, 439, 443, 449, 457, 461, 463,
         467, 479, 487, 491, 499, 503, 509, 521, 523, 541};
-    if (A <= 101)
-        return uInt(Prime[unit(A) - 1]);
+    if (N <= 101)
+        return uInt(Prime[unit(N) - 1]);
     return 541;
+}
+
+uInt permutation(const uInt &N, const uInt &k)
+{
+    if (k == 0)
+        return uInt(1);
+    else if (k > N)
+        return uInt(0);
+    uInt result = N;
+    for (unsigned i = 1; i < k; ++i)
+        result *= N - i;
+    return result;
+}
+
+uInt combination(const uInt &N, const uInt &k)
+{
+    if (k == 0)
+        return uInt(1);
+    else if (k > N)
+        return uInt(0);
+    else if (k * 2 > N)
+        return combination(N, N - k);
+    uInt Ank = permutation(N, k);
+    if (k <= 12)
+        return Ank / factorial(unit(k));
+    for (unsigned i = unit(k); i > 12; --i)
+        Ank /= i;
+    return Ank / 479001600; // 12!
 }

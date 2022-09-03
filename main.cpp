@@ -1,4 +1,5 @@
 #include "bigMath.h"
+#include <time.h>
 using namespace std;
 
 int main()
@@ -22,12 +23,15 @@ int main()
 	/*
 	cout << factorial(10000).length() / 9 << endl
 		 << factorial(10000).toString(16).length() / 8 << endl;
+	clock_t tic = clock();
+	uInt h = log2(114514);
+	cout << h.sciNote() << endl << "traditional 2^(1e6) time cost: "
+		 << (double)(clock() - tic) / CLOCKS_PER_SEC << "s" << endl;
 	*/
+	// for (unsigned n = 10'000; n <= 100'000; n += 10'000)
+	//	cout << n << ": " << fibonacci(n).sciNote(20) << endl;
 
-	// uInt h = exp2(64);
-	uInt A("1234567890123456789012345678901234567890");
-	uInt::setDelimiter(',', 0);
-	for (unsigned i = 0; i < 50; ++i)
-		cout << "A >> " << i << "\t= " << (A >> i) << endl;
+	// for (unsigned i = 0; i <= 100; ++i)
+	// 	cout << i << "\t: " << combination(200, i) << endl;
 	return 0;
 }
