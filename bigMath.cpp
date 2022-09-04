@@ -22,7 +22,7 @@ uInt exp10(const uInt &N)
 {
     static const unit exp_10[] = {1, 10, 100, 1'000, 10'000, 100'000,
                                   1'000'000, 10'000'000, 100'000'000};
-    auto section = static_cast<pair<twin, unit>>(N.divmod(9)); // uInt::LEN
+    auto section = static_cast<pair<unit, unit>>(N.divmod(9)); // uInt::LEN
     vector<unit> expo(section.first + 1, 0);
     expo.back() = exp_10[section.second];
     return uInt(expo);

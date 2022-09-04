@@ -24,11 +24,10 @@ std::cout << "You can also input the number you want: ";
 std::cin >> d;
 ```
 
-⚠️ **WARNING:** ⚠️ If you directly assign `uInt` with a negative number, it'll convert to `unsigned long long` before taken into the constructor. If you have to do that, use `uInt(long long _num, bool sign)`:
+⚠️ **WARNING:** ⚠️ If you directly assign `uInt` with a negative number, it'll convert to `unsigned long long` before taken into the constructor.
 
 ```cpp
-uInt largeNegative = -100;       // 18446744073709551516
-uInt smallPositive(-100, false); // 100, you should guarantee the sign
+uInt largeNegative = -100; // 18446744073709551516
 ```
 
 For `string`-constructor, `strings` can only consist of numbers and leading signs (which will be omitted).
@@ -40,7 +39,7 @@ uInt hilariousDemo("-+-+-+-1414213562"); // 1414213562
 // uInt errorDemo2("0xABCDEF")           // only base-10 readable
 ```
 
-`uInt`s are comparable. If you perfer `a < x < b` like `Python`, you can use `uInt::between`!
+`uInt`s are comparable. If you perfer `a < x < b` like Python, you can use `uInt::between`!
 
 ```cpp
 std::cout << "d > 10000? " << (d > 10000) << std::endl;

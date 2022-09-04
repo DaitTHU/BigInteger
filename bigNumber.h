@@ -6,9 +6,9 @@
 #include <utility> // std::pair
 
 typedef uint32_t unit; // 4 bytes
-typedef uint64_t twin;
-typedef int32_t snit; // unit: unsigned; snit: signed - make sense!
-typedef int64_t swin;
+typedef uint64_t dyad; // 8 bytes
+typedef int32_t snit;  // unit: unsigned; snit: signed - make sense!
+// typedef int64_t swin;
 
 class uInt
 {
@@ -21,8 +21,7 @@ protected:
 
 public:
 	uInt(){};
-	uInt(const twin &_num);
-	uInt(const swin &_num, const bool &sign) : uInt(sign ? _num : -_num) {}
+	uInt(const dyad &_num);
 	uInt(const std::vector<unit> &_num) : num(_num) {}
 	uInt(std::vector<unit> &&_num) : num(std::move(_num)) {}
 	uInt(const std::string &_num);
@@ -51,7 +50,7 @@ public:
 	uInt operator~() = delete;
 	template <typename T>
 	explicit operator T() const { return static_cast<T>(num[0]); }
-	explicit operator twin() const;
+	explicit operator dyad() const;
 	// derivative
 	bool operator>(const uInt &A) const { return A < *this; }
 	bool operator>=(const uInt &A) const { return !(*this < A); }
@@ -109,14 +108,14 @@ public:
 	unit length(const unsigned &base = 10) const;
 
 private:
-	static constexpr twin _MAX = static_cast<twin>(MAX); // uint64_t
+	static constexpr dyad _MAX = static_cast<dyad>(MAX); // uint64_t
 	unit operator[](const unit &i) const { return num[i]; }
-	unit size() const { return num.size(); }
-	void normalize();
-	unit adder(const unit &a, const unit &b, unit &carry) const;
-	unit suber(const unit &a, const unit &b, bool &borrow) const;
-	void muler(const unit &a, const unit &b, unit &p, unit &carry) const;
-	unit diver(const unit &a, const unit &b, unit &remainder) const;
+	unit _size() const { return num.size(); }
+	void _normalize();
+	unit _adder(const unit &a, const unit &b, unit &carry) const;
+	unit _suber(const unit &a, const unit &b, bool &borrow) const;
+	void _muler(const unit &a, const unit &b, unit &p, unit &carry) const;
+	unit _diver(const unit &a, const unit &b, unit &remainder) const;
 };
 
 class Int : public uInt
@@ -358,7 +357,7 @@ public:
 	// Real norm2() const { return a ^ 2 + b ^ 2; }
 };
 
-template <typename F> // Real, Complex
+template <typename F = Real> // Real, Complex
 class Poly			  // Polynomial
 {
 protected:

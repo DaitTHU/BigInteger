@@ -17,12 +17,12 @@ static const char alphabet[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 char uInt::delimiter = ',';
 unsigned uInt::interval = uInt::LEN;
 
-uInt::uInt(const twin &_num)
+uInt::uInt(const dyad &_num)
 {
     if (_num < _MAX)
         num.push_back(static_cast<unit>(_num));
     else
-        for (twin carry = _num; carry > 0; carry /= _MAX)
+        for (dyad carry = _num; carry > 0; carry /= _MAX)
             num.push_back(static_cast<unit>(carry % _MAX));
 }
 
@@ -56,25 +56,25 @@ uInt::uInt(const string &_num)
         num.pop_back();
 }
 
-uInt::operator twin() const
+uInt::operator dyad() const
 {
-    switch (size())
+    switch (_size())
     {
     case 1:
-        return static_cast<twin>(num[0]);
+        return static_cast<dyad>(num[0]);
     case 2:
-        return _MAX * static_cast<twin>(num[1]) + static_cast<twin>(num[0]);
+        return _MAX * static_cast<dyad>(num[1]) + static_cast<dyad>(num[0]);
     default:
-        return _MAX * _MAX * static_cast<twin>(num[2]) +
-               _MAX * static_cast<twin>(num[1]) + static_cast<twin>(num[0]);
+        return _MAX * _MAX * static_cast<dyad>(num[2]) +
+               _MAX * static_cast<dyad>(num[1]) + static_cast<dyad>(num[0]);
     }
 }
 
 bool uInt::operator<(const uInt &A) const
 {
-    if (size() != A.size())
-        return size() < A.size();
-    for (int i = size() - 1; i >= 0; --i)
+    if (_size() != A._size())
+        return _size() < A._size();
+    for (int i = _size() - 1; i >= 0; --i)
         if (num[i] != A[i])
             return num[i] < A[i];
     return false;
@@ -83,12 +83,12 @@ bool uInt::operator<(const uInt &A) const
 uInt &uInt::operator+=(const uInt &A)
 {
     unit carry = 0, i;
-    if (size() < A.size())
-        num.resize(A.size(), 0);
-    for (i = 0; i < A.num.size(); ++i)
-        num[i] = adder(num[i], A[i], carry);
+    if (_size() < A._size())
+        num.resize(A._size(), 0);
+    for (i = 0; i < A._size(); ++i)
+        num[i] = _adder(num[i], A[i], carry);
     for (; i < num.size(); ++i)
-        num[i] = adder(num[i], 0, carry);
+        num[i] = _adder(num[i], 0, carry);
     if (carry > 0)
         num.push_back(carry);
     return *this;
@@ -99,10 +99,10 @@ uInt &uInt::operator-=(const uInt &A)
     if (*this == A) // guarantee *this >= A for effi.
         return *this = 0;
     bool carry = false;
-    for (unsigned i = 0; i < A.size(); ++i)
-        num[i] = suber(num[i], A[i], carry);
-    for (unsigned i = A.size(); i < size(); ++i)
-        num[i] = suber(num[i], 0, carry);
+    for (unsigned i = 0; i < A._size(); ++i)
+        num[i] = _suber(num[i], A[i], carry);
+    for (unsigned i = A._size(); i < _size(); ++i)
+        num[i] = _suber(num[i], 0, carry);
     if (carry)
         --num.back();
     while (num.back() == 0)
@@ -112,14 +112,14 @@ uInt &uInt::operator-=(const uInt &A)
 
 uInt &uInt::operator*=(const uInt &A)
 {
-    vector<unit> prod(size() + A.size(), 0); // production
-    for (unsigned i = 0; i < A.size(); ++i)
+    vector<unit> prod(_size() + A._size(), 0); // production
+    for (unsigned i = 0; i < A._size(); ++i)
     {
         unit carry = 0;
-        for (unsigned j = 0; j < size(); ++j)
-            muler(A[i], num[j], prod[i + j], carry);
+        for (unsigned j = 0; j < _size(); ++j)
+            _muler(A[i], num[j], prod[i + j], carry);
         if (carry > 0)
-            prod[i + size()] += carry;
+            prod[i + _size()] += carry;
     }
     if (prod.back() == 0)
         prod.pop_back(); // at most 1.
@@ -135,8 +135,8 @@ uInt &uInt::operator/=(const unit &_num)
         return *this = 0;
     unit remainder = 0;
     for (auto digit = num.rbegin(); digit != num.rend(); ++digit)
-        *digit = diver(*digit, _num, remainder);
-    while (num.back() == 0 && size() > 1)
+        *digit = _diver(*digit, _num, remainder);
+    while (num.back() == 0 && _size() > 1)
         num.pop_back();
     return *this;
 }
@@ -149,7 +149,7 @@ uInt &uInt::operator%=(const unit &_num)
         return *this = _num;
     unit remainder = num.back() % _num;
     for (auto digit = num.rbegin() + 1; digit != num.rend(); ++digit)
-        remainder = (_MAX * static_cast<twin>(remainder) + static_cast<twin>(*digit)) % _num;
+        remainder = (_MAX * static_cast<dyad>(remainder) + static_cast<dyad>(*digit)) % _num;
     num.assign(1, remainder);
     return *this;
 }
@@ -168,12 +168,12 @@ uInt &uInt::operator^=(const uInt &A)
 uInt &uInt::operator>>=(const uInt &A)
 {
     auto section = static_cast<pair<unit, unit>>(A.divmod(9));
-    if (section.first >= size())
+    if (section.first >= _size())
         return *this = 0;
     else if (section.first > 0)
-        for (unit i = 0; i < size() - section.first; ++i)
+        for (unit i = 0; i < _size() - section.first; ++i)
             num[i] = num[i + section.first];
-    num.resize(size() - section.first);
+    num.resize(_size() - section.first);
     if (section.second == 0)
         return *this;
     unit divisor = exp10_[section.second], multiplier = exp10_[LEN - section.second];
@@ -194,8 +194,8 @@ uInt &uInt::operator<<=(const uInt &A)
     auto section = static_cast<pair<unit, unit>>(A.divmod(9));
     if (section.first > 0)
     {
-        num.resize(size() + section.first);
-        for (unit i = size(); i >= section.first; --i)
+        num.resize(_size() + section.first);
+        for (unit i = _size(); i >= section.first; --i)
             num[i] = num[i - section.first];
         for (unit i = 0; i < section.first; ++i)
             num[i] = 0;
@@ -204,7 +204,7 @@ uInt &uInt::operator<<=(const uInt &A)
         return *this;
     unit divisor = exp10_[LEN - section.second], multiplier = exp10_[section.second];
     unit nextCarry = 0;
-    for (unit i = section.first; i < size(); ++i)
+    for (unit i = section.first; i < _size(); ++i)
     {
         unit prevCarry = nextCarry;
         nextCarry = num[i] / divisor; // wasted in the last step
@@ -291,10 +291,10 @@ pair<uInt, unit> uInt::divmod(const unit &divident) const
     assert(divident != 0);
     if (*this < divident)
         return pair<uInt, unit>(0, num[0]);
-    vector<unit> quot(size(), 0); // quotient
+    vector<unit> quot(_size(), 0); // quotient
     unit remainder = 0;
     for (int i = quot.size() - 1; i >= 0; --i)
-        quot[i] = diver(num[i], divident, remainder);
+        quot[i] = _diver(num[i], divident, remainder);
     if (quot.back() == 0)
         quot.pop_back();
     return pair<uInt, unit>(quot, remainder);
@@ -303,7 +303,7 @@ pair<uInt, unit> uInt::divmod(const unit &divident) const
 /** @return pair(quotient, remainder) */
 pair<uInt, uInt> uInt::divmod(const uInt &A) const
 {
-    if (A.size() < 2) // if A.empty will throw errro
+    if (A._size() < 2) // if A.empty will throw errro
         return divmod(A[0]);
     if (*this < A)
         return pair<uInt, uInt>(0, *this);
@@ -334,7 +334,7 @@ pair<uInt, unit> uInt::approxExp2() const
 {
     if (*this == 0)
         return pair<uInt, unit>(0, 0);
-    unit len = LEN * (size() - 1);
+    unit len = LEN * (_size() - 1);
     unsigned i = 1;
     for (; exp10_[i] <= num.back(); ++i)
         ++len;
@@ -351,7 +351,7 @@ uInt uInt::sqrt() const
 {
     if (*this < 2)
         return *this;
-    uInt sqrtA = vector<unit>(size() / 2 + 1, 0);
+    uInt sqrtA = vector<unit>(_size() / 2 + 1, 0);
     while (*this < sqrtA * sqrtA)
         sqrtA = (sqrtA + *this / sqrtA) / 2;
     return sqrtA;
@@ -403,7 +403,7 @@ string uInt::sciNote(unit deciLength) const
 
 uInt uInt::subInt(const unsigned &begin, const unsigned &end) const
 {
-    auto back = (end <= size() ? num.begin() + end : num.end());
+    auto back = (end <= _size() ? num.begin() + end : num.end());
     return uInt(vector<unit>(num.begin() + begin, back));
 }
 
@@ -411,7 +411,7 @@ unit uInt::length(const unsigned &base) const
 {
     if (base == 10)
     {
-        unit len = LEN * (size() - 1);
+        unit len = LEN * (_size() - 1);
         for (unsigned i = 1; exp10_[i] <= num.back(); ++i)
             ++len;
         return len + 1;
@@ -429,26 +429,23 @@ unit uInt::length(const unsigned &base) const
 
 // private function
 
-void uInt::normalize()
+void uInt::_normalize()
 {
-    twin carry = 0;
-    for (unsigned i = 0; i < num.size(); ++i)
-    {
-        twin c = static_cast<twin>(num[i]) + carry;
-        carry = c / _MAX;
-        num[i] = static_cast<unit>(c % _MAX);
-    }
-    if (carry > 0)
-    {
-        num.push_back(carry);
-        return;
-    }
-    while (num.back() == 0 && size() > 1)
+    while (num.back() == 0 && _size() > 1)
         num.pop_back();
+    uInt carry = 0;
+    for (auto &digit : num)
+    {
+        uInt c = digit + carry;
+        carry = c / _MAX;
+        digit = static_cast<unit>(c % _MAX);
+    }
+    // if (carry > 0)
+    // num.push_back(carry);
 }
 
 /** @brief a + b + inCarry = c & outCarry. */
-inline unit uInt::adder(const unit &a, const unit &b, unit &carry) const
+inline unit uInt::_adder(const unit &a, const unit &b, unit &carry) const
 {
     unit c = a + b + carry; // max(c) < 3 * MAX < 0xFFFFFFFF, uint32_t is OK.
     carry = c / MAX;
@@ -456,7 +453,7 @@ inline unit uInt::adder(const unit &a, const unit &b, unit &carry) const
 }
 
 /** @brief MAX + a - b - prevBorrow = c & nextBorrow. */
-inline unit uInt::suber(const unit &a, const unit &b, bool &borrow) const
+inline unit uInt::_suber(const unit &a, const unit &b, bool &borrow) const
 {
     unit c = MAX + a - b - borrow;
     borrow = (c < MAX); // carry is either 0 or 1.
@@ -464,17 +461,17 @@ inline unit uInt::suber(const unit &a, const unit &b, bool &borrow) const
 }
 
 /** @brief a * b + p + inCarry = c & outCarry. */
-inline void uInt::muler(const unit &a, const unit &b, unit &p, unit &carry) const
+inline void uInt::_muler(const unit &a, const unit &b, unit &p, unit &carry) const
 {
-    twin c = static_cast<twin>(a) * static_cast<twin>(b) + static_cast<twin>(p) + static_cast<twin>(carry);
+    dyad c = static_cast<dyad>(a) * static_cast<dyad>(b) + static_cast<dyad>(p) + static_cast<dyad>(carry);
     carry = static_cast<unit>(c / MAX);
     p = static_cast<unit>(c % MAX);
 }
 
 /** @brief a / b + prevRemainder = c & nextRemainder. */
-inline unit uInt::diver(const unit &a, const unit &b, unit &remainder) const
+inline unit uInt::_diver(const unit &a, const unit &b, unit &remainder) const
 {
-    twin c = _MAX * static_cast<twin>(remainder) + static_cast<twin>(a);
+    dyad c = _MAX * static_cast<dyad>(remainder) + static_cast<dyad>(a);
     remainder = static_cast<unit>(c % b);
     return static_cast<unit>(c / b);
 }
