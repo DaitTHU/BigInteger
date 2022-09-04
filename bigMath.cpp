@@ -18,16 +18,6 @@ uInt exp2(const uInt &N)
     return power == N ? expo : expo * exp_2[uint32_t(N) - power];
 }
 
-uInt exp10(const uInt &N)
-{
-    static const uint32_t exp_10[] = {1, 10, 100, 1'000, 10'000, 100'000,
-                                  1'000'000, 10'000'000, 100'000'000};
-    auto section = static_cast<pair<uint32_t, uint32_t>>(N.divmod(9)); // uInt::LEN
-    vector<uint32_t> expo(section.first + 1, 0);
-    expo.back() = exp_10[section.second];
-    return uInt(expo);
-}
-
 uInt factorial(const uInt &N)
 {
     uInt result = 1;

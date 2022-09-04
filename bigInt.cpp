@@ -18,7 +18,7 @@ ostream &operator<<(ostream &os, const Int &A)
 {
     if (!A.p)
         os << '-';
-    os << uInt(A.num);
+    os << uInt(A);
     return os;
 }
 

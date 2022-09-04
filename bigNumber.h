@@ -13,14 +13,13 @@ protected:
 	static const uint32_t MAX = 1'000'000'000; // 0x100000000 = 4'294'967'296
 	static char delimiter;
 	static unsigned interval;
-
-public:
-	uInt() {}
-	uInt(const uint64_t &_num);
-	uInt(const std::string &_num);
 	// unusual constructor
 	uInt(const std::vector<uint32_t> &_num) : num(_num) {}
 	uInt(std::vector<uint32_t> &&_num) : num(std::move(_num)) {}
+
+public:
+	uInt(const uint64_t &_num = 0);
+	uInt(const std::string &_num);
 	uInt(const uInt &A) = default;
 	uInt(uInt &&A) = default;
 	virtual ~uInt() = default;
@@ -31,6 +30,7 @@ public:
 	bool operator==(const uInt &A) const { return num == A.num; }
 	uInt &operator+=(const uInt &A);
 	uInt &operator-=(const uInt &A);
+	uInt &operator*=(const uint32_t &_num);
 	uInt &operator*=(const uInt &A);
 	uInt &operator/=(const uint32_t &_num);
 	uInt &operator%=(const uint32_t &_num);
@@ -53,6 +53,7 @@ public:
 	bool operator!=(const uInt &A) const { return !(*this == A); }
 	uInt operator+(const uInt &A) const { return uInt(*this) += A; }
 	uInt operator-(const uInt &A) const { return uInt(*this) -= A; }
+	uInt operator*(const uint32_t &_num) const { return uInt(*this) *= _num; }
 	uInt operator*(const uInt &A) const { return uInt(*this) *= A; }
 	uInt operator/(const uint32_t &_num) { return uInt(*this) /= _num; }
 	uInt operator%(const uint32_t &_num) { return uInt(*this) %= _num; }
@@ -94,21 +95,22 @@ public:
 	bool between(const uInt &A, const uInt &B, bool includeA = true, bool includeB = false) const;
 	std::pair<uInt, uint32_t> divmod(const uint32_t &_num) const;
 	std::pair<uInt, uInt> divmod(const uInt &A) const;
-	std::pair<uInt, uint32_t> approxExp2() const;
+	std::pair<uInt, uint64_t> approxExp2() const;
+	friend uInt exp10(const uInt &N);
 	uInt sqrt() const;
 	std::string toString(const unsigned &base = 10, const bool &suffix = false) const;
 	std::string sciNote(uint32_t deciLength = LEN) const; // whether should for ostream, not string?
 	uInt subInt(const unsigned &begin = 0, const unsigned &end = MAX) const;
-	uint32_t length(const unsigned &base = 10) const;
+	std::size_t length(const unsigned &base = 10) const;
 
 private:
-	static constexpr uint64_t _max = static_cast<uint64_t>(MAX); // uint64_t
+	static constexpr uint64_t MAXL = static_cast<uint64_t>(MAX); // uint64_t
 	uint32_t operator[](const uint32_t &i) const { return num[i]; }
-	uint32_t _size() const { return num.size(); }
+	std::size_t _size() const { return num.size(); }
 	void _normalize();
 	uint32_t _adder(const uint32_t &a, const uint32_t &b, uint32_t &carry) const;
 	uint32_t _suber(const uint32_t &a, const uint32_t &b, bool &borrow) const;
-	void _muler(const uint32_t &a, const uint32_t &b, uint32_t &p, uint32_t &carry) const;
+	void _muler(const uint32_t &a, const uint32_t &b, uint32_t &p, uint64_t &carry) const;
 	uint32_t _diver(const uint32_t &a, const uint32_t &b, uint32_t &remainder) const;
 };
 
@@ -116,11 +118,10 @@ class Int : public uInt
 {
 protected:
 	bool p = true; // positive
+	Int(const std::vector<uint32_t> &_num, bool _p = true) : uInt(_num), p(_p) {}
 
 public:
-	Int(){};
-	Int(const int64_t &_num) : uInt(abs(_num)), p(_num >= 0) {}
-	Int(const std::vector<uint32_t> &_num, bool _p = true) : uInt(_num), p(_p) {}
+	Int(const int64_t &_num = 0) : uInt(abs(_num)), p(_num >= 0) {}
 	Int(const uInt &A, bool _p = true) : uInt(A), p(_p) {}
 	Int(uInt &&A, bool _p = true) : uInt(A), p(_p) {}
 	Int(const std::string &_num) : uInt(_num), p(_num[0] != '-') {}
@@ -135,7 +136,7 @@ public:
 		return *this;
 	}
 	// relational
-	bool operator>(const Int &A) const { return p == A.p ? p ? uInt::operator>(A.num) : uInt::operator<(A.num) : p; }
+	bool operator>(const Int &A) const; //{ return p == A.p ? p ? uInt::operator>(A.num) : uInt::operator<(A.num) : p; }
 	bool operator<(const Int &A) const { return A > *this; }
 	bool operator==(const Int &A) const { return num == A.num && p == A.p; }
 	bool operator<=(const Int &A) const { return !operator>(A); }

@@ -19,11 +19,11 @@ unsigned uInt::interval = uInt::LEN;
 
 uInt::uInt(const uint64_t &_num)
 {
-    if (_num < _max)
+    if (_num < MAXL)
         num.push_back(static_cast<uint32_t>(_num));
     else
-        for (uint64_t carry = _num; carry > 0; carry /= _max)
-            num.push_back(static_cast<uint32_t>(carry % _max));
+        for (auto carry = _num; carry > 0; carry /= MAXL)
+            num.push_back(static_cast<uint32_t>(carry % MAXL));
 }
 
 uInt::uInt(const string &_num)
@@ -34,14 +34,14 @@ uInt::uInt(const string &_num)
         return;
     }
     bool isZero = true;
-    for (auto &digit : _num)
-        if (digit < '0' || digit > '9')
+    for (auto &_digit : _num)
+        if (_digit < '0' || _digit > '9')
         {
             cout << "WARNING: N/A string in constructor, set as 0." << endl;
             num.push_back(0);
             return;
         }
-        else if (isZero && digit != '0')
+        else if (isZero && _digit != '0')
             isZero = false;
     if (isZero) // all 0
     {
@@ -63,10 +63,10 @@ uInt::operator uint64_t() const
     case 1:
         return static_cast<uint64_t>(num[0]);
     case 2:
-        return _max * static_cast<uint64_t>(num[1]) + static_cast<uint64_t>(num[0]);
+        return MAXL * static_cast<uint64_t>(num[1]) + static_cast<uint64_t>(num[0]);
     default:
-        return _max * _max * static_cast<uint64_t>(num[2]) +
-               _max * static_cast<uint64_t>(num[1]) + static_cast<uint64_t>(num[0]);
+        return MAXL * MAXL * static_cast<uint64_t>(num[2]) +
+               MAXL * static_cast<uint64_t>(num[1]) + static_cast<uint64_t>(num[0]);
     }
 }
 
@@ -82,10 +82,11 @@ bool uInt::operator<(const uInt &A) const
 
 uInt &uInt::operator+=(const uInt &A)
 {
-    uint32_t carry = 0, i;
     if (_size() < A._size())
         num.resize(A._size(), 0);
-    for (i = 0; i < A._size(); ++i)
+    uint32_t carry = 0;
+    size_t i = 0;
+    for (; i < A._size(); ++i)
         num[i] = _adder(num[i], A[i], carry);
     for (; i < num.size(); ++i)
         num[i] = _adder(num[i], 0, carry);
@@ -99,9 +100,9 @@ uInt &uInt::operator-=(const uInt &A)
     if (*this == A) // guarantee *this >= A for effi.
         return *this = 0;
     bool carry = false;
-    for (unsigned i = 0; i < A._size(); ++i)
+    for (size_t i = 0; i < A._size(); ++i)
         num[i] = _suber(num[i], A[i], carry);
-    for (unsigned i = A._size(); i < _size(); ++i)
+    for (size_t i = A._size(); i < _size(); ++i)
         num[i] = _suber(num[i], 0, carry);
     if (carry)
         --num.back();
@@ -110,13 +111,34 @@ uInt &uInt::operator-=(const uInt &A)
     return *this;
 }
 
+uInt &uInt::operator*=(const uint32_t &_num)
+{
+    uint64_t carry = 0;
+    for (auto &part : num)
+    {
+        uint64_t c = static_cast<uint64_t>(part) * static_cast<uint64_t>(_num) + carry;
+        carry = c / MAXL;
+        part = static_cast<uint32_t>(c % MAXL);
+    }
+    if (carry == 0)
+        return *this;
+    if (carry < MAXL)
+        num.push_back(static_cast<uint32_t>(carry));
+    else
+    {
+        num.push_back(static_cast<uint32_t>(carry % MAXL));
+        num.push_back(static_cast<uint32_t>(carry / MAXL));
+    }
+    return *this;
+}
+
 uInt &uInt::operator*=(const uInt &A)
 {
     vector<uint32_t> prod(_size() + A._size(), 0); // production
-    for (unsigned i = 0; i < A._size(); ++i)
+    for (size_t i = 0; i < A._size(); ++i)
     {
-        uint32_t carry = 0;
-        for (unsigned j = 0; j < _size(); ++j)
+        uint64_t carry = 0; // < MAXL
+        for (size_t j = 0; j < _size(); ++j)
             _muler(A[i], num[j], prod[i + j], carry);
         if (carry > 0)
             prod[i + _size()] += carry;
@@ -134,8 +156,8 @@ uInt &uInt::operator/=(const uint32_t &_num)
     if (*this < _num)
         return *this = 0;
     uint32_t remainder = 0;
-    for (auto digit = num.rbegin(); digit != num.rend(); ++digit)
-        *digit = _diver(*digit, _num, remainder);
+    for (auto part = num.rbegin(); part != num.rend(); ++part)
+        *part = _diver(*part, _num, remainder);
     while (num.back() == 0 && _size() > 1)
         num.pop_back();
     return *this;
@@ -148,8 +170,8 @@ uInt &uInt::operator%=(const uint32_t &_num)
     if (*this < _num)
         return *this = _num;
     uint32_t remainder = num.back() % _num;
-    for (auto digit = num.rbegin() + 1; digit != num.rend(); ++digit)
-        remainder = (_max * static_cast<uint64_t>(remainder) + static_cast<uint64_t>(*digit)) % _num;
+    for (auto part = num.rbegin() + 1; part != num.rend(); ++part)
+        remainder = (MAXL * static_cast<uint64_t>(remainder) + static_cast<uint64_t>(*part)) % _num;
     num.assign(1, remainder);
     return *this;
 }
@@ -157,32 +179,32 @@ uInt &uInt::operator%=(const uint32_t &_num)
 uInt &uInt::operator^=(const uInt &A)
 {
     uInt base = *this;
-    uInt power = 1;
-    for (; power * 2 <= A; power *= 2)
+    uInt power = 1, halfA = A / 2;
+    for (; power <= halfA; power *= 2)
         *this *= *this; // quick
     for (; power < A; ++power)
-        *this *= base; // slow
+        *this *= base; // extremely slow
     return *this;
 }
 
 uInt &uInt::operator>>=(const uInt &A)
 {
-    auto section = static_cast<pair<uint32_t, uint32_t>>(A.divmod(9));
+    auto section = static_cast<pair<size_t, uint32_t>>(A.divmod(static_cast<uint32_t>(LEN)));
     if (section.first >= _size())
         return *this = 0;
     else if (section.first > 0)
-        for (uint32_t i = 0; i < _size() - section.first; ++i)
+        for (size_t i = 0; i < _size() - section.first; ++i)
             num[i] = num[i + section.first];
     num.resize(_size() - section.first);
     if (section.second == 0)
         return *this;
     uint32_t divisor = exp10_[section.second], multiplier = exp10_[LEN - section.second];
     uint32_t nextRemainder = 0;
-    for (auto digit = num.rbegin(); digit != num.rend(); ++digit)
+    for (auto part = num.rbegin(); part != num.rend(); ++part)
     {
         uint32_t prevRemainder = nextRemainder;
-        nextRemainder = *digit % divisor; // wasted in the last step
-        *digit = *digit / divisor + prevRemainder * multiplier;
+        nextRemainder = *part % divisor; // wasted in the last step
+        *part = *part / divisor + prevRemainder * multiplier;
     }
     if (num.back() == 0 && num.size() > 1)
         num.pop_back();
@@ -191,20 +213,20 @@ uInt &uInt::operator>>=(const uInt &A)
 
 uInt &uInt::operator<<=(const uInt &A)
 {
-    auto section = static_cast<pair<uint32_t, uint32_t>>(A.divmod(9));
+    auto section = static_cast<pair<size_t, uint32_t>>(A.divmod(static_cast<uint32_t>(LEN)));
     if (section.first > 0)
     {
         num.resize(_size() + section.first);
-        for (uint32_t i = _size(); i >= section.first; --i)
+        for (size_t i = _size(); i >= section.first; --i)
             num[i] = num[i - section.first];
-        for (uint32_t i = 0; i < section.first; ++i)
+        for (size_t i = 0; i < section.first; ++i)
             num[i] = 0;
     }
     if (section.second == 0)
         return *this;
     uint32_t divisor = exp10_[LEN - section.second], multiplier = exp10_[section.second];
     uint32_t nextCarry = 0;
-    for (uint32_t i = section.first; i < _size(); ++i)
+    for (size_t i = section.first; i < _size(); ++i)
     {
         uint32_t prevCarry = nextCarry;
         nextCarry = num[i] / divisor; // wasted in the last step
@@ -330,12 +352,11 @@ pair<uInt, uInt> uInt::divmod(const uInt &A) const
 }
 
 /** @return largest (2^n, n) that 2^n <= *this */
-pair<uInt, uint32_t> uInt::approxExp2() const
+pair<uInt, uint64_t> uInt::approxExp2() const
 {
     if (*this == 0)
         return pair<uInt, uint32_t>(0, 0);
-    uint32_t len = LEN * (_size() - 1);
-    unsigned i = 1;
+    size_t len = LEN * (_size() - 1), i = 1;
     for (; exp10_[i] <= num.back(); ++i)
         ++len;
     uint32_t firstNum = num.back() / exp10_[i - 1];
@@ -347,11 +368,21 @@ pair<uInt, uint32_t> uInt::approxExp2() const
         return pair<uInt, uint32_t>(expo2, power + 1);
 }
 
+uInt exp10(const uInt &N)
+{
+    static const uint32_t exp_10[] = {1, 10, 100, 1'000, 10'000, 100'000,
+                                      1'000'000, 10'000'000, 100'000'000};
+    auto section = static_cast<pair<size_t, uint32_t>>(N.divmod(static_cast<uint32_t>(uInt::LEN)));
+    vector<uint32_t> expo(section.first + 1, 0);
+    expo.back() = exp_10[section.second];
+    return uInt(move(expo));
+}
+
 uInt uInt::sqrt() const
 {
     if (*this < 2)
         return *this;
-    uInt sqrtA = vector<uint32_t>(_size() / 2 + 1, 0);
+    uInt sqrtA(vector<uint32_t>(_size() / 2 + 1, 0));
     while (*this < sqrtA * sqrtA)
         sqrtA = (sqrtA + *this / sqrtA) / 2;
     return sqrtA;
@@ -407,11 +438,11 @@ uInt uInt::subInt(const unsigned &begin, const unsigned &end) const
     return uInt(vector<uint32_t>(num.begin() + begin, back));
 }
 
-uint32_t uInt::length(const unsigned &base) const
+size_t uInt::length(const unsigned &base) const
 {
     if (base == 10)
     {
-        uint32_t len = LEN * (_size() - 1);
+        size_t len = LEN * (_size() - 1);
         for (unsigned i = 1; exp10_[i] <= num.back(); ++i)
             ++len;
         return len + 1;
@@ -437,8 +468,8 @@ void uInt::_normalize()
     for (auto &digit : num)
     {
         uInt c = digit + carry;
-        carry = c / _max;
-        digit = static_cast<uint32_t>(c % _max);
+        carry = c / MAXL;
+        digit = static_cast<uint32_t>(c % MAXL);
     }
     // if (carry > 0)
     // num.push_back(carry);
@@ -461,17 +492,17 @@ inline uint32_t uInt::_suber(const uint32_t &a, const uint32_t &b, bool &borrow)
 }
 
 /** @brief a * b + p + inCarry = c & outCarry. */
-inline void uInt::_muler(const uint32_t &a, const uint32_t &b, uint32_t &p, uint32_t &carry) const
+inline void uInt::_muler(const uint32_t &a, const uint32_t &b, uint32_t &p, uint64_t &carry) const
 {
-    uint64_t c = static_cast<uint64_t>(a) * static_cast<uint64_t>(b) + static_cast<uint64_t>(p) + static_cast<uint64_t>(carry);
-    carry = static_cast<uint32_t>(c / MAX);
-    p = static_cast<uint32_t>(c % MAX);
+    uint64_t c = static_cast<uint64_t>(a) * static_cast<uint64_t>(b) + static_cast<uint64_t>(p) + carry;
+    carry = c / MAXL;
+    p = static_cast<uint32_t>(c % MAXL);
 }
 
 /** @brief a / b + prevRemainder = c & nextRemainder. */
 inline uint32_t uInt::_diver(const uint32_t &a, const uint32_t &b, uint32_t &remainder) const
 {
-    uint64_t c = _max * static_cast<uint64_t>(remainder) + static_cast<uint64_t>(a);
+    uint64_t c = MAXL * static_cast<uint64_t>(remainder) + static_cast<uint64_t>(a);
     remainder = static_cast<uint32_t>(c % b);
     return static_cast<uint32_t>(c / b);
 }

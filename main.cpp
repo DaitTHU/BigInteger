@@ -35,9 +35,9 @@ int main()
 	// 	cout << i << "\t: " << combination(200, i) << endl;
 
 	uInt b = fibonacci(100);
-	uInt c(3434);
+	uInt c(999'999'999);
 	cout << b << endl;
-	cout << __cplusplus << endl;
+	vector<uint32_t> d = {234, 1234};
 	// for (unsigned i = 1; i <= 100; i += 1)
 	// {
 	// 	uInt a = fibonacci(i);

@@ -5,8 +5,6 @@
 /** @return 2^A */
 uInt exp2(const uInt &N);
 
-uInt exp10(const uInt &N);
-
 /** @return largest 2^n that <= A */
 inline uInt exp2fit(const uInt &A) { return A.approxExp2().first; }
 
