@@ -3,27 +3,27 @@ using namespace std;
 
 uInt exp2(const uInt &N)
 {
-    static const unit exp_2[] = {
+    static const uint32_t exp_2[] = {
         1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384,
         32768, 65536, 131072, 262144, 524288, 1048576, 2097152, 4194304,
         8388608, 16777216, 33554432, 67108864, 134217728, 268435456, 536'870'912};
     if (N < 30)
-        return uInt(exp_2[unit(N)]);
+        return uInt(exp_2[uint32_t(N)]);
     uInt expo = uInt(exp_2[29]) * 2;
     unsigned power = 30;
     for (; power * 2 <= N; power *= 2)
         expo *= expo;
     for (; power + 29 <= N; power += 29)
         expo *= exp_2[29];
-    return power == N ? expo : expo * exp_2[unit(N) - power];
+    return power == N ? expo : expo * exp_2[uint32_t(N) - power];
 }
 
 uInt exp10(const uInt &N)
 {
-    static const unit exp_10[] = {1, 10, 100, 1'000, 10'000, 100'000,
+    static const uint32_t exp_10[] = {1, 10, 100, 1'000, 10'000, 100'000,
                                   1'000'000, 10'000'000, 100'000'000};
-    auto section = static_cast<pair<unit, unit>>(N.divmod(9)); // uInt::LEN
-    vector<unit> expo(section.first + 1, 0);
+    auto section = static_cast<pair<uint32_t, uint32_t>>(N.divmod(9)); // uInt::LEN
+    vector<uint32_t> expo(section.first + 1, 0);
     expo.back() = exp_10[section.second];
     return uInt(expo);
 }
@@ -43,7 +43,7 @@ uInt fibonacci(const uInt &N, const bool &startFrom0)
         2584, 4181, 6765, 10946, 17711, 28657, 46368, 75025, 121393, 196418, 317811,
         514229, 832040, 1346269, 2178309, 3524578, 5702887, 9227465, 14930352, 24157817,
         39088169, 63245986, 102334155, 165580141, 267914296, 433494437, 701408733};
-    unit n = static_cast<unit>(N) + startFrom0;
+    uint32_t n = static_cast<uint32_t>(N) + startFrom0;
     if (n < 45)
         return Fibon[n];
     uInt a = fibonacci(n / 2);
@@ -64,7 +64,7 @@ uInt prime(const uInt &N)
         389, 397, 401, 409, 419, 421, 431, 433, 439, 443, 449, 457, 461, 463,
         467, 479, 487, 491, 499, 503, 509, 521, 523, 541};
     if (N <= 101)
-        return uInt(Prime[unit(N) - 1]);
+        return uInt(Prime[uint32_t(N) - 1]);
     return 541;
 }
 
@@ -90,8 +90,8 @@ uInt combination(const uInt &N, const uInt &k)
         return combination(N, N - k);
     uInt Ank = permutation(N, k);
     if (k <= 12)
-        return Ank / factorial(unit(k));
-    for (unsigned i = unit(k); i > 12; --i)
+        return Ank / factorial(uint32_t(k));
+    for (unsigned i = uint32_t(k); i > 12; --i)
         Ank /= i;
     return Ank / 479001600; // 12!
 }

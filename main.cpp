@@ -34,9 +34,10 @@ int main()
 	// for (unsigned i = 0; i <= 100; ++i)
 	// 	cout << i << "\t: " << combination(200, i) << endl;
 
-	uInt b = fibonacci(10000);
-	cout << b.sciNote() << endl;
-
+	uInt b = fibonacci(100);
+	uInt c(3434);
+	cout << b << endl;
+	cout << __cplusplus << endl;
 	// for (unsigned i = 1; i <= 100; i += 1)
 	// {
 	// 	uInt a = fibonacci(i);
@@ -44,7 +45,7 @@ int main()
 	// 	if (!c.between(b - a, b, false, true))
 	// 		cout << i << ' ' << (c <= b - 2*a) << endl;
 	// }
-	cout << ((b % 1211211223)) << endl;
+
 	// uInt a = fibonacci(45);
 	// uInt c = (b >> 1).divmod(unit(a >> 1)).first;
 	// uInt d = (c * static_cast<uInt>(1'000'000'000 - 1)).divmod(1'000'000'000).first;

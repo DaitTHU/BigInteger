@@ -9,21 +9,21 @@ using namespace std;
 #define LG2_32_9 241726409 / 225843117 // 32 * lg2 / 9
 #define LOG2_10 1079882313 / 325076968 // DO NOT TOUCH
 
-static const unit log2_[] = {0, 0, 1, 1, 2, 2, 2, 2, 3, 3};
-static const unit exp10_[] = {
+static const uint32_t log2_[] = {0, 0, 1, 1, 2, 2, 2, 2, 3, 3};
+static const uint32_t exp10_[] = {
     1, 10, 100, 1'000, 10'000, 100'000, 1'000'000, 10'000'000, 100'000'000, 1'000'000'000};
 static const char alphabet[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
 char uInt::delimiter = ',';
 unsigned uInt::interval = uInt::LEN;
 
-uInt::uInt(const dyad &_num)
+uInt::uInt(const uint64_t &_num)
 {
-    if (_num < _MAX)
-        num.push_back(static_cast<unit>(_num));
+    if (_num < _max)
+        num.push_back(static_cast<uint32_t>(_num));
     else
-        for (dyad carry = _num; carry > 0; carry /= _MAX)
-            num.push_back(static_cast<unit>(carry % _MAX));
+        for (uint64_t carry = _num; carry > 0; carry /= _max)
+            num.push_back(static_cast<uint32_t>(carry % _max));
 }
 
 uInt::uInt(const string &_num)
@@ -33,7 +33,7 @@ uInt::uInt(const string &_num)
         *this = uInt(_num.substr(1)); // omit sign
         return;
     }
-    bool nonzero = false;
+    bool isZero = true;
     for (auto &digit : _num)
         if (digit < '0' || digit > '9')
         {
@@ -41,9 +41,9 @@ uInt::uInt(const string &_num)
             num.push_back(0);
             return;
         }
-        else if (digit != '0')
-            nonzero = true;
-    if (!nonzero) // all 0
+        else if (isZero && digit != '0')
+            isZero = false;
+    if (isZero) // all 0
     {
         num.push_back(0);
         return;
@@ -51,22 +51,22 @@ uInt::uInt(const string &_num)
     int pos;
     for (pos = _num.length() - LEN; pos > 0; pos -= LEN)
         num.push_back(stoi(_num.substr(pos, LEN)));
-    num.push_back(stoi(_num.substr(0, pos + LEN)));
+    num.push_back(stoi(_num.substr(0, LEN + pos))); // p <= 0
     while (num.back() == 0)
         num.pop_back();
 }
 
-uInt::operator dyad() const
+uInt::operator uint64_t() const
 {
     switch (_size())
     {
     case 1:
-        return static_cast<dyad>(num[0]);
+        return static_cast<uint64_t>(num[0]);
     case 2:
-        return _MAX * static_cast<dyad>(num[1]) + static_cast<dyad>(num[0]);
+        return _max * static_cast<uint64_t>(num[1]) + static_cast<uint64_t>(num[0]);
     default:
-        return _MAX * _MAX * static_cast<dyad>(num[2]) +
-               _MAX * static_cast<dyad>(num[1]) + static_cast<dyad>(num[0]);
+        return _max * _max * static_cast<uint64_t>(num[2]) +
+               _max * static_cast<uint64_t>(num[1]) + static_cast<uint64_t>(num[0]);
     }
 }
 
@@ -82,7 +82,7 @@ bool uInt::operator<(const uInt &A) const
 
 uInt &uInt::operator+=(const uInt &A)
 {
-    unit carry = 0, i;
+    uint32_t carry = 0, i;
     if (_size() < A._size())
         num.resize(A._size(), 0);
     for (i = 0; i < A._size(); ++i)
@@ -112,10 +112,10 @@ uInt &uInt::operator-=(const uInt &A)
 
 uInt &uInt::operator*=(const uInt &A)
 {
-    vector<unit> prod(_size() + A._size(), 0); // production
+    vector<uint32_t> prod(_size() + A._size(), 0); // production
     for (unsigned i = 0; i < A._size(); ++i)
     {
-        unit carry = 0;
+        uint32_t carry = 0;
         for (unsigned j = 0; j < _size(); ++j)
             _muler(A[i], num[j], prod[i + j], carry);
         if (carry > 0)
@@ -127,13 +127,13 @@ uInt &uInt::operator*=(const uInt &A)
     return *this;
 }
 
-uInt &uInt::operator/=(const unit &_num)
+uInt &uInt::operator/=(const uint32_t &_num)
 {
     if (_num >= MAX)
         return *this /= uInt(_num);
     if (*this < _num)
         return *this = 0;
-    unit remainder = 0;
+    uint32_t remainder = 0;
     for (auto digit = num.rbegin(); digit != num.rend(); ++digit)
         *digit = _diver(*digit, _num, remainder);
     while (num.back() == 0 && _size() > 1)
@@ -141,15 +141,15 @@ uInt &uInt::operator/=(const unit &_num)
     return *this;
 }
 
-uInt &uInt::operator%=(const unit &_num)
+uInt &uInt::operator%=(const uint32_t &_num)
 {
     if (_num >= MAX)
         return *this %= uInt(_num);
     if (*this < _num)
         return *this = _num;
-    unit remainder = num.back() % _num;
+    uint32_t remainder = num.back() % _num;
     for (auto digit = num.rbegin() + 1; digit != num.rend(); ++digit)
-        remainder = (_MAX * static_cast<dyad>(remainder) + static_cast<dyad>(*digit)) % _num;
+        remainder = (_max * static_cast<uint64_t>(remainder) + static_cast<uint64_t>(*digit)) % _num;
     num.assign(1, remainder);
     return *this;
 }
@@ -167,20 +167,20 @@ uInt &uInt::operator^=(const uInt &A)
 
 uInt &uInt::operator>>=(const uInt &A)
 {
-    auto section = static_cast<pair<unit, unit>>(A.divmod(9));
+    auto section = static_cast<pair<uint32_t, uint32_t>>(A.divmod(9));
     if (section.first >= _size())
         return *this = 0;
     else if (section.first > 0)
-        for (unit i = 0; i < _size() - section.first; ++i)
+        for (uint32_t i = 0; i < _size() - section.first; ++i)
             num[i] = num[i + section.first];
     num.resize(_size() - section.first);
     if (section.second == 0)
         return *this;
-    unit divisor = exp10_[section.second], multiplier = exp10_[LEN - section.second];
-    unit nextRemainder = 0;
+    uint32_t divisor = exp10_[section.second], multiplier = exp10_[LEN - section.second];
+    uint32_t nextRemainder = 0;
     for (auto digit = num.rbegin(); digit != num.rend(); ++digit)
     {
-        unit prevRemainder = nextRemainder;
+        uint32_t prevRemainder = nextRemainder;
         nextRemainder = *digit % divisor; // wasted in the last step
         *digit = *digit / divisor + prevRemainder * multiplier;
     }
@@ -191,22 +191,22 @@ uInt &uInt::operator>>=(const uInt &A)
 
 uInt &uInt::operator<<=(const uInt &A)
 {
-    auto section = static_cast<pair<unit, unit>>(A.divmod(9));
+    auto section = static_cast<pair<uint32_t, uint32_t>>(A.divmod(9));
     if (section.first > 0)
     {
         num.resize(_size() + section.first);
-        for (unit i = _size(); i >= section.first; --i)
+        for (uint32_t i = _size(); i >= section.first; --i)
             num[i] = num[i - section.first];
-        for (unit i = 0; i < section.first; ++i)
+        for (uint32_t i = 0; i < section.first; ++i)
             num[i] = 0;
     }
     if (section.second == 0)
         return *this;
-    unit divisor = exp10_[LEN - section.second], multiplier = exp10_[section.second];
-    unit nextCarry = 0;
-    for (unit i = section.first; i < _size(); ++i)
+    uint32_t divisor = exp10_[LEN - section.second], multiplier = exp10_[section.second];
+    uint32_t nextCarry = 0;
+    for (uint32_t i = section.first; i < _size(); ++i)
     {
-        unit prevCarry = nextCarry;
+        uint32_t prevCarry = nextCarry;
         nextCarry = num[i] / divisor; // wasted in the last step
         num[i] = num[i] % divisor * multiplier + prevCarry;
     }
@@ -286,18 +286,18 @@ bool uInt::between(const uInt &A, const uInt &B, bool includeA, bool includeB) c
     }
 }
 
-pair<uInt, unit> uInt::divmod(const unit &divident) const
+pair<uInt, uint32_t> uInt::divmod(const uint32_t &divident) const
 {
     assert(divident != 0);
     if (*this < divident)
-        return pair<uInt, unit>(0, num[0]);
-    vector<unit> quot(_size(), 0); // quotient
-    unit remainder = 0;
+        return pair<uInt, uint32_t>(0, num[0]);
+    vector<uint32_t> quot(_size(), 0); // quotient
+    uint32_t remainder = 0;
     for (int i = quot.size() - 1; i >= 0; --i)
         quot[i] = _diver(num[i], divident, remainder);
     if (quot.back() == 0)
         quot.pop_back();
-    return pair<uInt, unit>(quot, remainder);
+    return pair<uInt, uint32_t>(quot, remainder);
 }
 
 /** @return pair(quotient, remainder) */
@@ -308,7 +308,7 @@ pair<uInt, uInt> uInt::divmod(const uInt &A) const
     if (*this < A)
         return pair<uInt, uInt>(0, *this);
     // attempt div, result Quot >= real Q
-    unit exceedLen = A.length() - LEN;
+    uint32_t exceedLen = A.length() - LEN;
     uInt maxQ = (*this >> exceedLen) / (A >> exceedLen)[0];
     if (*this == maxQ * A)
         return pair<uInt, uInt>(maxQ, 0);
@@ -330,28 +330,28 @@ pair<uInt, uInt> uInt::divmod(const uInt &A) const
 }
 
 /** @return largest (2^n, n) that 2^n <= *this */
-pair<uInt, unit> uInt::approxExp2() const
+pair<uInt, uint32_t> uInt::approxExp2() const
 {
     if (*this == 0)
-        return pair<uInt, unit>(0, 0);
-    unit len = LEN * (_size() - 1);
+        return pair<uInt, uint32_t>(0, 0);
+    uint32_t len = LEN * (_size() - 1);
     unsigned i = 1;
     for (; exp10_[i] <= num.back(); ++i)
         ++len;
-    unit firstNum = num.back() / exp10_[i - 1];
-    unit power = log2_[firstNum] + len * LOG2_10; // error: -1~0
+    uint32_t firstNum = num.back() / exp10_[i - 1];
+    uint32_t power = log2_[firstNum] + len * LOG2_10; // error: -1~0
     uInt expo = exp2(power), expo2 = expo * 2;
     if (*this < expo2)
-        return pair<uInt, unit>(expo, power);
+        return pair<uInt, uint32_t>(expo, power);
     else
-        return pair<uInt, unit>(expo2, power + 1);
+        return pair<uInt, uint32_t>(expo2, power + 1);
 }
 
 uInt uInt::sqrt() const
 {
     if (*this < 2)
         return *this;
-    uInt sqrtA = vector<unit>(_size() / 2 + 1, 0);
+    uInt sqrtA = vector<uint32_t>(_size() / 2 + 1, 0);
     while (*this < sqrtA * sqrtA)
         sqrtA = (sqrtA + *this / sqrtA) / 2;
     return sqrtA;
@@ -385,10 +385,10 @@ string uInt::toString(const unsigned &base, const bool &suffix) const
     return str;
 }
 
-string uInt::sciNote(unit deciLength) const
+string uInt::sciNote(uint32_t deciLength) const
 {
     string str = to_string(num.back()), subDeci;
-    unit power = length() - 1;
+    uint32_t power = length() - 1;
     deciLength = min(deciLength, power);
     if (deciLength == 0)
         return str.substr(0, 1) + " x 10^" + to_string(power);
@@ -404,14 +404,14 @@ string uInt::sciNote(unit deciLength) const
 uInt uInt::subInt(const unsigned &begin, const unsigned &end) const
 {
     auto back = (end <= _size() ? num.begin() + end : num.end());
-    return uInt(vector<unit>(num.begin() + begin, back));
+    return uInt(vector<uint32_t>(num.begin() + begin, back));
 }
 
-unit uInt::length(const unsigned &base) const
+uint32_t uInt::length(const unsigned &base) const
 {
     if (base == 10)
     {
-        unit len = LEN * (_size() - 1);
+        uint32_t len = LEN * (_size() - 1);
         for (unsigned i = 1; exp10_[i] <= num.back(); ++i)
             ++len;
         return len + 1;
@@ -437,41 +437,41 @@ void uInt::_normalize()
     for (auto &digit : num)
     {
         uInt c = digit + carry;
-        carry = c / _MAX;
-        digit = static_cast<unit>(c % _MAX);
+        carry = c / _max;
+        digit = static_cast<uint32_t>(c % _max);
     }
     // if (carry > 0)
     // num.push_back(carry);
 }
 
 /** @brief a + b + inCarry = c & outCarry. */
-inline unit uInt::_adder(const unit &a, const unit &b, unit &carry) const
+inline uint32_t uInt::_adder(const uint32_t &a, const uint32_t &b, uint32_t &carry) const
 {
-    unit c = a + b + carry; // max(c) < 3 * MAX < 0xFFFFFFFF, uint32_t is OK.
+    uint32_t c = a + b + carry; // max(c) < 3 * MAX < 0xFFFFFFFF, uint32_t is OK.
     carry = c / MAX;
     return c % MAX;
 }
 
 /** @brief MAX + a - b - prevBorrow = c & nextBorrow. */
-inline unit uInt::_suber(const unit &a, const unit &b, bool &borrow) const
+inline uint32_t uInt::_suber(const uint32_t &a, const uint32_t &b, bool &borrow) const
 {
-    unit c = MAX + a - b - borrow;
+    uint32_t c = MAX + a - b - borrow;
     borrow = (c < MAX); // carry is either 0 or 1.
     return c % MAX;
 }
 
 /** @brief a * b + p + inCarry = c & outCarry. */
-inline void uInt::_muler(const unit &a, const unit &b, unit &p, unit &carry) const
+inline void uInt::_muler(const uint32_t &a, const uint32_t &b, uint32_t &p, uint32_t &carry) const
 {
-    dyad c = static_cast<dyad>(a) * static_cast<dyad>(b) + static_cast<dyad>(p) + static_cast<dyad>(carry);
-    carry = static_cast<unit>(c / MAX);
-    p = static_cast<unit>(c % MAX);
+    uint64_t c = static_cast<uint64_t>(a) * static_cast<uint64_t>(b) + static_cast<uint64_t>(p) + static_cast<uint64_t>(carry);
+    carry = static_cast<uint32_t>(c / MAX);
+    p = static_cast<uint32_t>(c % MAX);
 }
 
 /** @brief a / b + prevRemainder = c & nextRemainder. */
-inline unit uInt::_diver(const unit &a, const unit &b, unit &remainder) const
+inline uint32_t uInt::_diver(const uint32_t &a, const uint32_t &b, uint32_t &remainder) const
 {
-    dyad c = _MAX * static_cast<dyad>(remainder) + static_cast<dyad>(a);
-    remainder = static_cast<unit>(c % b);
-    return static_cast<unit>(c / b);
+    uint64_t c = _max * static_cast<uint64_t>(remainder) + static_cast<uint64_t>(a);
+    remainder = static_cast<uint32_t>(c % b);
+    return static_cast<uint32_t>(c / b);
 }
