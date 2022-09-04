@@ -30,18 +30,17 @@ public:
 	uInt(uInt &&A) = default;
 	virtual ~uInt() = default;
 	// basic: =, <, ==, +=, -=,...
+	// uInt &operator=(const unit &_num) { num.assign(1, _num); return *this; }
 	uInt &operator=(const uInt &A) { num = A.num; return *this; }
 	uInt &operator=(uInt &&A) { num = std::move(A.num); return *this; }
 	bool operator<(const uInt &A) const;
 	bool operator==(const uInt &A) const { return num == A.num; }
 	uInt &operator+=(const uInt &A);
 	uInt &operator-=(const uInt &A);
-	uInt operator*(const uInt &A) const;
+	uInt &operator*=(const uInt &A);
 	uInt &operator/=(const unit &_num);
 	uInt &operator%=(const unit &_num);
-	uInt operator/(const uInt &A) const { return divmod(A).first; }
-	uInt operator%(const uInt &A) const { return divmod(A).second; }
-	uInt operator^(const uInt &A) const;
+	uInt &operator^=(const uInt &A);
 	uInt &operator>>=(const uInt &A);
 	uInt &operator<<=(const uInt &A);
 	uInt &operator&=(const uInt &A) = delete;
@@ -60,10 +59,14 @@ public:
 	bool operator!=(const uInt &A) const { return !(*this == A); }
 	uInt operator+(const uInt &A) const { return uInt(*this) += A; }
 	uInt operator-(const uInt &A) const { return uInt(*this) -= A; }
-	uInt &operator*=(const uInt &A) { return *this = *this * A; }
+	uInt operator*(const uInt &A) const { return uInt(*this) *= A; }
+	uInt operator/(const unit &_num) { return uInt(*this) /= _num; }
+	uInt operator%(const unit &_num) { return uInt(*this) %= _num; }
+	uInt operator/(const uInt &A) const { return divmod(A).first; }
+	uInt operator%(const uInt &A) const { return divmod(A).second; }
 	uInt &operator/=(const uInt &A) { return *this = *this / A; }
 	uInt &operator%=(const uInt &A) { return *this = *this % A; }
-	uInt &operator^=(const uInt &A) { return *this = *this ^ A; }
+	uInt operator^(const uInt &A) const { return uInt(*this) ^= A; }
 	uInt operator>>(const uInt &A) const { return uInt(*this) >>= A; }
 	uInt operator<<(const uInt &A) const { return uInt(*this) <<= A; }
 	uInt operator&(const uInt &A) const = delete;
@@ -106,6 +109,7 @@ public:
 	unit length(const unsigned &base = 10) const;
 
 private:
+	static constexpr twin _MAX = static_cast<twin>(MAX); // uint64_t
 	unit operator[](const unit &i) const { return num[i]; }
 	unit size() const { return num.size(); }
 	void normalize();
