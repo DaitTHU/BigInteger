@@ -1,8 +1,18 @@
+.vscode
+
 *.o
 *.exe
+
 makefile
+
 test
 test.*
-.vscode
-main.*
+*.test
+
+*.bak
+
+# ./w is exe, convenient to type
 w
+
+# use valgrind
+log

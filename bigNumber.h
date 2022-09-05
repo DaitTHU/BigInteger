@@ -21,8 +21,8 @@ protected:
 public:
 	uInt(const uint64_t &_num = 0);
 	uInt(const std::string &_num);
-	uInt(const uInt &A) = default;
-	uInt(uInt &&A) = default;
+	uInt(const uInt &A) : num(A.num) {}
+	uInt(uInt &&A) : num(std::move(A.num)) {}
 	virtual ~uInt() = default;
 	// basic: =, <, ==, +=, -=,...
 	uInt &operator=(const uInt &A) { num = A.num; return *this; }

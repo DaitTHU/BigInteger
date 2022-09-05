@@ -15,7 +15,11 @@ int main()
 	uInt g = b ^ 3;
 	*/
 
-	// uInt b("1234567891011121314151617181920");
+	// uInt Y("1234567891011121314151617181920");
+	// cout << uInt("1078091605637804892") << endl
+	// 	 << Y / uInt("1145141919810") << endl
+	// 	 << (uInt("123456789101112131415161718") / 114514191) << endl
+	// 	 << (uInt("123456789101112131415161718") / 114514191) * 99999999 << endl;
 
 	// cout << factorial(5000).sciNote() << endl
 	//	 << factorial(5000).approxExp2().first.sciNote() << endl;
@@ -35,28 +39,23 @@ int main()
 	// 	cout << i << "\t: " << combination(200, i) << endl;
 
 	uInt b = fibonacci(100);
-	uInt c(999'999'999);
-	cout << b - -INF << endl;
-	// b /= 0;
-	// b %= 0;
-	// b.divmod(0);
-	// for (unsigned i = 1; i <= 100; i += 1)
-	// {
-	// 	uInt a = fibonacci(i);
-	// 	uInt c = (b / a) * a;
-	// 	if (!c.between(b - a, b, false, true))
-	// 		cout << i << ' ' << (c <= b - 2*a) << endl;
-	// }
-
-	// uInt a = fibonacci(45);
-	// uInt c = (b >> 1).divmod(unit(a >> 1)).first;
-	// uInt d = (c * static_cast<uInt>(1'000'000'000 - 1)).divmod(1'000'000'000).first;
-	// uInt e = (b / a);
-	// cout << c.sciNote() << endl
-	// 	 << (c - d).sciNote() << endl
-	// 	 << (c - e);
-	// cout << a.sciNote() << endl
-	// 	 << (b - c).sciNote();
-	// cout << endl;
+	/*
+	for (unsigned i = 1; i <= 100; i += 1)
+	{
+		uInt a = fibonacci(i);
+		uInt c = (b / a) * a;
+		if (!c.between(b - a, b, false, true))
+			cout << i << ' ' << (c <= b - 2 * a) << endl;
+	}
+	uInt a = fibonacci(62);
+	cout << b << " / " << a << endl;
+	cout << (b >> 4) << " / " << (a >> 4) << endl
+		 << (b >> 4) / (a >> 4) << endl;
+	*/
+	uInt::setDelimiter(',', 0);
+	uInt c("12345678910121314151617181920212223");
+	// for (unsigned i = 0; i < 100; i += 1)
+	//	cout << i << " <<:\t" << (c << i) << endl;
+	cout << (c << 1000).sciNote(50) << endl;
 	return 0;
 }

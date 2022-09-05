@@ -195,16 +195,17 @@ uInt &uInt::operator^=(const uInt &A)
 
 uInt &uInt::operator>>=(const uInt &A)
 {
-    auto section = static_cast<pair<size_t, uint32_t>>(A.divmod(static_cast<uint32_t>(LEN)));
-    if (section.first >= _size())
+    size_t sizeLen = A[0] / LEN;
+    if (sizeLen >= _size())
         return *this = 0;
-    else if (section.first > 0)
-        for (size_t i = 0; i < _size() - section.first; ++i)
-            num[i] = num[i + section.first];
-    num.resize(_size() - section.first);
-    if (section.second == 0)
+    else if (sizeLen > 0)
+        for (size_t i = 0; i < _size() - sizeLen; ++i)
+            num[i] = num[i + sizeLen];
+    num.resize(_size() - sizeLen);
+    uint32_t digitLen = A[0] % LEN;
+    if (digitLen == 0)
         return *this;
-    uint32_t divisor = exp10_[section.second], multiplier = exp10_[LEN - section.second];
+    uint32_t divisor = exp10_[digitLen], multiplier = exp10_[LEN - digitLen];
     uint32_t nextRemainder = 0;
     for (auto part = num.rbegin(); part != num.rend(); ++part)
     {
@@ -219,20 +220,21 @@ uInt &uInt::operator>>=(const uInt &A)
 
 uInt &uInt::operator<<=(const uInt &A)
 {
-    auto section = static_cast<pair<size_t, uint32_t>>(A.divmod(static_cast<uint32_t>(LEN)));
-    if (section.first > 0)
+    size_t sizeLen = A[0] / LEN;
+    if (sizeLen > 0)
     {
-        num.resize(_size() + section.first);
-        for (size_t i = _size(); i >= section.first; --i)
-            num[i] = num[i - section.first];
-        for (size_t i = 0; i < section.first; ++i)
+        num.resize(_size() + sizeLen);
+        for (size_t i = _size(); i >= sizeLen; --i)
+            num[i] = num[i - sizeLen];
+        for (size_t i = 0; i < sizeLen; ++i)
             num[i] = 0;
     }
-    if (section.second == 0)
+    uint32_t digitLen = A[0] % LEN;
+    if (digitLen == 0)
         return *this;
-    uint32_t divisor = exp10_[LEN - section.second], multiplier = exp10_[section.second];
+    uint32_t divisor = exp10_[LEN - digitLen], multiplier = exp10_[digitLen];
     uint32_t nextCarry = 0;
-    for (size_t i = section.first; i < _size(); ++i)
+    for (size_t i = sizeLen; i < _size(); ++i)
     {
         uint32_t prevCarry = nextCarry;
         nextCarry = num[i] / divisor; // wasted in the last step
@@ -298,7 +300,7 @@ void uInt::setDelimiter(const char &_c, const unsigned &_interval)
         cout << "ERROR: N/A interval, only 0, 3 and 9 allowed." << endl;
 }
 
-/** @param left @return bool */
+/** @return A <= this < B */
 bool uInt::between(const uInt &A, const uInt &B, const bool &includeA, const bool &includeB) const
 {
     switch ((includeA << 1) | includeB)
@@ -326,13 +328,12 @@ pair<uInt, uInt> uInt::divmod(const uInt &A) const
     if (*this < A)
         return pair<uInt, uInt>(0, *this);
     // attempt div, result Quot >= real Q
-    uint32_t exceedLen = A.length() - LEN;
-    uInt maxQ = (*this >> exceedLen) / (A >> exceedLen)[0];
+    size_t exceedLen = A.length() - LEN;
+    uInt maxQ = (*this >> exceedLen) / (A >> exceedLen)[0] + 2;
     if (*this == maxQ * A)
         return pair<uInt, uInt>(maxQ, 0);
-    // real Q > maxQ * MAX / (MAX + 1)
-    // here couldn't div (MAX + 1), replace smaller (MAX - 1) / MAX
-    uInt minQ = ((maxQ * static_cast<uInt>(MAX - 8)) >> LEN);
+    // real Q > maxQ * 100'000'000 / 100'000'001
+    uInt minQ = (maxQ << 8) / 100000001;
     while (minQ + 1 < maxQ) // *this < maxQ * A
     {
         uInt midQ = (maxQ + minQ) / 2;
@@ -368,9 +369,8 @@ uInt exp10(const uInt &N)
 {
     static const uint32_t exp_10[] = {1, 10, 100, 1'000, 10'000, 100'000,
                                       1'000'000, 10'000'000, 100'000'000};
-    auto section = static_cast<pair<size_t, uint32_t>>(N.divmod(static_cast<uint32_t>(uInt::LEN)));
-    vector<uint32_t> expo(section.first + 1, 0);
-    expo.back() = exp_10[section.second];
+    vector<uint32_t> expo(N[0] / uInt::LEN + 1, 0);
+    expo.back() = exp_10[N[0] % uInt::LEN];
     return uInt(move(expo));
 }
 
