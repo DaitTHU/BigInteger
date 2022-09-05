@@ -34,36 +34,34 @@ int main()
 		cout << i << "\t: " << combination(200, i) << endl;
 	*/
 
-	uInt A = fibonacci(10000);
-	// cout << A << endl;
+	/*
+	uInt A = fibonacci(100000);
+	cout << A.sciNote() << endl;
 
 	for (unsigned i = 100; i <= 1000; i += 10)
 	{
 		uInt a = fibonacci(i), b = A / a;
-		uInt c = b * a;
+		// uInt c = b * a;
 		cout << i << " " << flush;
-		if (!c.between(A - a, A, false, true))
-		{
-			size_t l = a.length() - 9;
-			cout << i << ":\t" << A << " / " << a << endl
-				 << "\t" << (A >> l) << " / " << (a >> l) << endl
-				 << "\t" << ((A >> l) / (a >> l)) << endl
-				 << "\t" << b << endl
-				 << "\t" << (((A >> l) / (a >> l)) << 8) / 100000001 << endl
-				 << "\t" << A - c << " " << a << endl;
-		}
 	}
-	/*
-	 */
 
-	/*
 	uInt a = fibonacci(62);
 
 	cout << b << " / " << a << endl;
 	cout << b / a << endl;
+	 */
 
-	uInt c("12345678910121314151617181920212223");
-	// cout << (c << 100) << endl;
+	for (unsigned i = 100; i <= 200; i += 10)
+	{
+		uInt c = fibonacci(i);
+		uInt sc = sqrt(c);
+		cout << i << " " << flush;
+		if (!c.between(sc ^ 2, (sc + 1) ^ 2))
+			cout << "!" << endl;
+	}
+	cout << endl;
+
+	/*
 	for (unsigned i = 0; i < 100; i += 1)
 		cout << i << " <<:\t" << (c << i) << endl;
 	*/

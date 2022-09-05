@@ -36,8 +36,8 @@ public:
 	uInt &operator/=(const uint32_t &_num);
 	uInt &operator%=(const uint32_t &_num);
 	uInt &operator^=(const uInt &A);
-	uInt &operator>>=(const uInt &A);
-	uInt &operator<<=(const uInt &A);
+	uInt &operator>>=(const std::size_t &_num);
+	uInt &operator<<=(const std::size_t &_num);
 	uInt &operator&=(const uInt &A) = delete;
 	uInt &operator|=(const uInt &A) = delete;
 	// unary arithmetic
@@ -65,6 +65,8 @@ public:
 	uInt &operator/=(const uInt &A) { return *this = *this / A; }
 	uInt &operator%=(const uInt &A) { return *this = *this % A; }
 	uInt operator^(const uInt &A) const { return uInt(*this) ^= A; }
+	uInt &operator>>=(const uInt &A) { return *this >>= static_cast<std::size_t>(A); }
+	uInt &operator<<=(const uInt &A) { return *this <<= static_cast<std::size_t>(A); }
 	uInt operator>>(const uInt &A) const { return uInt(*this) >>= A; }
 	uInt operator<<(const uInt &A) const { return uInt(*this) <<= A; }
 	uInt operator&(const uInt &A) const = delete;
@@ -97,16 +99,18 @@ public:
 	// others
 	bool between(const uInt &A, const uInt &B, const bool &includeA = true, const bool &includeB = false) const;
 	std::pair<uInt, uInt> divmod(const uInt &A) const;
+	uInt coarseDiv(const uInt &A, const std::size_t exactDigit = LEN) const;
 	std::pair<uInt, uint64_t> approxExp2() const;
 	friend uInt exp10(const uInt &N);
-	uInt sqrt() const;
+	friend uInt sqrt(const uInt &A);
 	std::string toString(const unsigned &_base = 10, const bool &_suffix = false) const;
 	std::string sciNote(const std::size_t &_deciLength = LEN) const; // whether for ostream, or string?
 	uInt subInt(const unsigned &begin = 0, const unsigned &end = MAX) const;
 	std::size_t length(const unsigned &_base = 10) const;
 
 private:
-	static constexpr uint64_t MAXL = static_cast<uint64_t>(MAX); // uint64_t
+	static constexpr size_t LENL = static_cast<std::size_t>(LEN); // size_t
+	static constexpr uint64_t MAXL = static_cast<uint64_t>(MAX);  // uint64_t
 	uint32_t operator[](const uint32_t &i) const { return num[i]; }
 	std::size_t _size() const { return num.size(); }
 	void _normalize();

@@ -193,16 +193,16 @@ uInt &uInt::operator^=(const uInt &A)
     return *this;
 }
 
-uInt &uInt::operator>>=(const uInt &A)
+uInt &uInt::operator>>=(const size_t &_num)
 {
-    size_t sizeLen = static_cast<size_t>(A) / LEN;
+    size_t sizeLen = _num / LENL;
     if (sizeLen >= _size())
         return *this = 0;
     else if (sizeLen > 0)
         for (size_t i = 0; i < _size() - sizeLen; ++i)
             num[i] = num[i + sizeLen];
     num.resize(_size() - sizeLen);
-    uint32_t digitLen = static_cast<size_t>(A) % LEN;
+    uint32_t digitLen = _num % LEN;
     if (digitLen == 0)
         return *this;
     uint32_t shift = EXP10_[digitLen], kept = EXP10_[LEN - digitLen];
@@ -218,9 +218,11 @@ uInt &uInt::operator>>=(const uInt &A)
     return *this;
 }
 
-uInt &uInt::operator<<=(const uInt &A)
+uInt &uInt::operator<<=(const size_t &_num)
 {
-    size_t sizeLen = static_cast<size_t>(A) / LEN;
+    if (*this == 0)
+        return *this;
+    size_t sizeLen = _num / LENL;
     if (sizeLen > 0)
     {
         num.resize(_size() + sizeLen);
@@ -229,7 +231,7 @@ uInt &uInt::operator<<=(const uInt &A)
         for (size_t i = 0; i < sizeLen; ++i)
             num[i] = 0;
     }
-    uint32_t digitLen = static_cast<size_t>(A) % LEN;
+    uint32_t digitLen = static_cast<uint32_t>(_num % LENL);
     if (digitLen == 0)
         return *this;
     uint32_t shift = EXP10_[digitLen], kept = EXP10_[LEN - digitLen];
@@ -328,7 +330,7 @@ pair<uInt, uInt> uInt::divmod(const uInt &A) const
     if (*this < A)
         return pair<uInt, uInt>(0, *this);
     // attempt div, result Quot + 1 >= real Q
-    size_t exceedLen = A.length() - LEN;
+    size_t exceedLen = A.length() - LENL;
     uInt maxQ = (*this >> exceedLen) / (A >> exceedLen)[0];
     uInt QA = maxQ * A;
     if (*this >= QA)
@@ -352,12 +354,16 @@ pair<uInt, uInt> uInt::divmod(const uInt &A) const
     return pair<uInt, uInt>(minQ, *this - QA);
 }
 
+uInt uInt::coarseDiv(const uInt &A, const std::size_t exactDigit) const
+{
+}
+
 /** @return largest (2^n, n) that 2^n <= *this */
 pair<uInt, uint64_t> uInt::approxExp2() const
 {
     if (*this == 0)
         return pair<uInt, uint32_t>(0, 0);
-    size_t len = LEN * (_size() - 1), i = 1;
+    size_t len = LENL * (_size() - 1), i = 1;
     for (; EXP10_[i] <= num.back(); ++i)
         ++len;
     uint32_t firstNum = num.back() / EXP10_[i - 1];
@@ -365,8 +371,7 @@ pair<uInt, uint64_t> uInt::approxExp2() const
     uInt expo = exp2(power), expo2 = expo * 2;
     if (*this < expo2)
         return pair<uInt, uint32_t>(expo, power);
-    else
-        return pair<uInt, uint32_t>(expo2, power + 1);
+    return pair<uInt, uint32_t>(expo2, power + 1);
 }
 
 uInt exp10(const uInt &N)
@@ -378,13 +383,14 @@ uInt exp10(const uInt &N)
     return uInt(move(expo));
 }
 
-uInt uInt::sqrt() const
+uInt sqrt(const uInt &A)
 {
-    if (*this < 2)
-        return *this;
-    uInt sqrtA(vector<uint32_t>(_size() / 2 + 1, 0));
-    while (*this < sqrtA * sqrtA)
-        sqrtA = (sqrtA + *this / sqrtA) / 2;
+    if (A < 2)
+        return A;
+    uInt sqrtA(vector<uint32_t>(A._size() / 2 + 2, 0));
+    sqrtA.num.back() = 1;
+    while (sqrtA * sqrtA > A)
+        sqrtA = (sqrtA + A / sqrtA) / 2; // Newton
     return sqrtA;
 }
 
@@ -439,7 +445,7 @@ size_t uInt::length(const unsigned &base) const
 {
     if (base == 10)
     {
-        size_t len = LEN * (_size() - 1);
+        size_t len = LENL * (_size() - 1);
         for (unsigned i = 1; EXP10_[i] <= num.back(); ++i)
             ++len;
         return len + 1;
