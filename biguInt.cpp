@@ -299,7 +299,8 @@ void uInt::setDelimiter(const char &_c, const unsigned &_interval)
         cout << "ERROR: N/A interval, only 0, 3 and 9 allowed." << endl;
 }
 
-bool uInt::between(const uInt &A, const uInt &B, bool includeA, bool includeB) const
+/** @param left @return pair(quotient, remainder) */
+bool uInt::between(const uInt &A, const uInt &B, const bool &includeA, const bool &includeB) const
 {
     switch ((includeA << 1) | includeB)
     {
@@ -409,11 +410,11 @@ string uInt::toString(const unsigned &base, const bool &suffix) const
     return str;
 }
 
-string uInt::sciNote(uint32_t deciLength) const
+string uInt::sciNote(const size_t &_deciLength) const
 {
     string str = to_string(num.back()), subDeci;
-    uint32_t power = length() - 1;
-    deciLength = min(deciLength, power);
+    size_t power = length() - 1;
+    size_t deciLength = min(_deciLength, power);
     if (deciLength == 0)
         return str.substr(0, 1) + " x 10^" + to_string(power);
     str.insert(1, 1, '.');

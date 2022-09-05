@@ -94,15 +94,15 @@ public:
 	friend std::istream &operator>>(std::istream &is, uInt &A);
 	static void setDelimiter(const char &_c = ',', const unsigned &_interval = LEN);
 	// others
-	bool between(const uInt &A, const uInt &B, bool includeA = true, bool includeB = false) const;
+	bool between(const uInt &A, const uInt &B, const bool &includeA = true, const bool &includeB = false) const;
 	std::pair<uInt, uInt> divmod(const uInt &A) const;
 	std::pair<uInt, uint64_t> approxExp2() const;
 	friend uInt exp10(const uInt &N);
 	uInt sqrt() const;
-	std::string toString(const unsigned &base = 10, const bool &suffix = false) const;
-	std::string sciNote(uint32_t deciLength = LEN) const; // whether should for ostream, not string?
+	std::string toString(const unsigned &_base = 10, const bool &_suffix = false) const;
+	std::string sciNote(const std::size_t &_deciLength = LEN) const; // whether for ostream, or string?
 	uInt subInt(const unsigned &begin = 0, const unsigned &end = MAX) const;
-	std::size_t length(const unsigned &base = 10) const;
+	std::size_t length(const unsigned &_base = 10) const;
 
 private:
 	static constexpr uint64_t MAXL = static_cast<uint64_t>(MAX); // uint64_t
@@ -119,24 +119,20 @@ private:
 class Int : public uInt
 {
 protected:
-	bool p = true; // positive
+	bool p; // positive
 	Int(const std::vector<uint32_t> &_num, bool _p = true) : uInt(_num), p(_p) {}
 
 public:
 	Int(const int64_t &_num = 0) : uInt(abs(_num)), p(_num >= 0) {}
+	Int(const std::string &_num) : uInt(_num), p(_num[0] != '-') {}
 	Int(const uInt &A, bool _p = true) : uInt(A), p(_p) {}
 	Int(uInt &&A, bool _p = true) : uInt(A), p(_p) {}
-	Int(const std::string &_num) : uInt(_num), p(_num[0] != '-') {}
 	Int(const Int &A) = default;
 	Int(Int &&A) = default;
 	virtual ~Int() = default;
 	// assignment
 	Int &operator=(const Int &A) { num = A.num, p = A.p; return *this; }
-	Int &operator=(Int &&A)
-	{
-		num = std::move(A.num), p = A.p;
-		return *this;
-	}
+	Int &operator=(Int &&A) { num = std::move(A.num), p = A.p; return *this; }
 	// relational
 	bool operator>(const Int &A) const; //{ return p == A.p ? p ? uInt::operator>(A.num) : uInt::operator<(A.num) : p; }
 	bool operator<(const Int &A) const { return A > *this; }
@@ -311,6 +307,17 @@ public:
 	// I/O stream
 	friend std::ostream &operator<<(std::ostream &os, const Real &A);
 	friend std::istream &operator>>(std::istream &is, Real &A);
+};
+
+class Inf
+{
+private:
+	bool p;
+
+public:
+	Inf(bool positive = true) : p(positive) {}
+	Inf operator+() const { return Inf(true); }
+	Inf operator-() const { return Inf(false); }
 };
 
 class Complex
