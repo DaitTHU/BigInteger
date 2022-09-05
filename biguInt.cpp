@@ -151,24 +151,19 @@ uInt &uInt::operator*=(const uInt &A)
 
 uInt &uInt::operator/=(const uint32_t &_num)
 {
-    if (_num >= MAX)
-        return *this /= uInt(_num);
-    if (*this < _num)
-        return *this = 0;
-    uint32_t remainder = 0;
-    for (auto part = num.rbegin(); part != num.rend(); ++part)
-        *part = _diver(*part, _num, remainder);
-    while (num.back() == 0 && _size() > 1)
-        num.pop_back();
+    this->div(_num);
     return *this;
 }
 
 uInt &uInt::operator%=(const uint32_t &_num)
 {
     if (_num >= MAX)
-        return *this %= uInt(_num);
+        return *this = this->divmod(uInt(_num)).second;
     if (*this < _num)
-        return *this = _num;
+    {
+        num.assign(_num, 1);
+        return *this;
+    }
     uint32_t remainder = num.back() % _num;
     for (auto part = num.rbegin() + 1; part != num.rend(); ++part)
         remainder = (MAXL * static_cast<uint64_t>(remainder) + static_cast<uint64_t>(*part)) % _num;
@@ -178,6 +173,17 @@ uInt &uInt::operator%=(const uint32_t &_num)
 
 uInt &uInt::operator^=(const uInt &A)
 {
+    if (*this < 2)
+        return *this;
+    switch (static_cast<uint64_t>(A))
+    {
+    case 0:
+        return *this = 1;
+    case 1:
+        return *this;
+    case 2:
+        return *this *= *this;
+    }
     uInt base = *this;
     uInt power = 1, halfA = A / 2;
     for (; power <= halfA; power *= 2)
@@ -308,25 +314,15 @@ bool uInt::between(const uInt &A, const uInt &B, bool includeA, bool includeB) c
     }
 }
 
-pair<uInt, uint32_t> uInt::divmod(const uint32_t &divident) const
-{
-    assert(divident != 0);
-    if (*this < divident)
-        return pair<uInt, uint32_t>(0, num[0]);
-    vector<uint32_t> quot(_size(), 0); // quotient
-    uint32_t remainder = 0;
-    for (int i = quot.size() - 1; i >= 0; --i)
-        quot[i] = _diver(num[i], divident, remainder);
-    if (quot.back() == 0)
-        quot.pop_back();
-    return pair<uInt, uint32_t>(quot, remainder);
-}
-
-/** @return pair(quotient, remainder) */
+/** @param divident @return pair(quotient, remainder) */
 pair<uInt, uInt> uInt::divmod(const uInt &A) const
 {
     if (A._size() < 2) // if A.empty will throw errro
-        return divmod(A[0]);
+    {
+        uInt thisCopy = *this;
+        uint32_t remainder = thisCopy.div(A[0]);
+        return pair<uInt, uInt>(thisCopy, remainder);
+    }
     if (*this < A)
         return pair<uInt, uInt>(0, *this);
     // attempt div, result Quot >= real Q
@@ -403,13 +399,10 @@ string uInt::toString(const unsigned &base, const bool &suffix) const
         return str;
     }
     assert(base <= 37);
-    auto qr = divmod(base);
-    string str(1, alphabet[qr.second]);
-    while (qr.first != 0)
-    {
-        qr = qr.first.divmod(base);
-        str += alphabet[qr.second];
-    }
+    uInt thisCopy = *this;
+    string str(1, alphabet[thisCopy.div(base)]);
+    while (bool(thisCopy))
+        str += alphabet[thisCopy.div(base)];
     reverse(str.begin(), str.end());
     if (suffix)
         str += '(' + to_string(base) + ')';
@@ -505,4 +498,26 @@ inline uint32_t uInt::_diver(const uint32_t &a, const uint32_t &b, uint32_t &rem
     uint64_t c = MAXL * static_cast<uint64_t>(remainder) + static_cast<uint64_t>(a);
     remainder = static_cast<uint32_t>(c % b);
     return static_cast<uint32_t>(c / b);
+}
+
+/** @param _divident < MAX, @return remainder */
+uint32_t uInt::div(const uint32_t &_divident)
+{
+    if (_divident >= MAX)
+    {
+        auto quoRem = this->divmod(uInt(_divident));
+        *this = quoRem.first; // can't use auto [,]
+        return static_cast<uint32_t>(quoRem.second);
+    }
+    if (*this < _divident)
+    {
+        *this = 0;
+        return _divident;
+    }
+    uint32_t remainder = 0;
+    for (auto part = num.rbegin(); part != num.rend(); ++part)
+        *part = _diver(*part, _divident, remainder);
+    while (num.back() == 0 && _size() > 1) // at most once
+        num.pop_back();
+    return remainder;
 }

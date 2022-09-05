@@ -37,7 +37,9 @@ int main()
 	uInt b = fibonacci(100);
 	uInt c(999'999'999);
 	cout << b << endl;
-	vector<uint32_t> d = {234, 1234};
+	// b /= 0;
+	// b %= 0;
+	// b.divmod(0);
 	// for (unsigned i = 1; i <= 100; i += 1)
 	// {
 	// 	uInt a = fibonacci(i);

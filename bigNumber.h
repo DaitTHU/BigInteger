@@ -13,7 +13,7 @@ protected:
 	static const uint32_t MAX = 1'000'000'000; // 0x100000000 = 4'294'967'296
 	static char delimiter;
 	static unsigned interval;
-	// unusual constructor
+	// restricted constructor
 	uInt(const std::vector<uint32_t> &_num) : num(_num) {}
 	uInt(std::vector<uint32_t> &&_num) : num(std::move(_num)) {}
 
@@ -46,6 +46,8 @@ public:
 	template <typename T>
 	explicit operator T() const { return static_cast<T>(num[0]); }
 	explicit operator uint64_t() const;
+	explicit operator std::string() const { return toString(); }
+	explicit operator bool() const { return _size() > 1 || num[0] > 0; } // != 0
 	// derivative
 	bool operator>(const uInt &A) const { return A < *this; }
 	bool operator>=(const uInt &A) const { return !(*this < A); }
@@ -55,8 +57,8 @@ public:
 	uInt operator-(const uInt &A) const { return uInt(*this) -= A; }
 	uInt operator*(const uint32_t &_num) const { return uInt(*this) *= _num; }
 	uInt operator*(const uInt &A) const { return uInt(*this) *= A; }
-	uInt operator/(const uint32_t &_num) { return uInt(*this) /= _num; }
-	uInt operator%(const uint32_t &_num) { return uInt(*this) %= _num; }
+	uInt operator/(const uint32_t &_num) const { return uInt(*this) /= _num; }
+	uInt operator%(const uint32_t &_num) const { return uInt(*this) %= _num; }
 	uInt operator/(const uInt &A) const { return divmod(A).first; }
 	uInt operator%(const uInt &A) const { return divmod(A).second; }
 	uInt &operator/=(const uInt &A) { return *this = *this / A; }
@@ -93,7 +95,6 @@ public:
 	static void setDelimiter(const char &_c = ',', const unsigned &_interval = LEN);
 	// others
 	bool between(const uInt &A, const uInt &B, bool includeA = true, bool includeB = false) const;
-	std::pair<uInt, uint32_t> divmod(const uint32_t &_num) const;
 	std::pair<uInt, uInt> divmod(const uInt &A) const;
 	std::pair<uInt, uint64_t> approxExp2() const;
 	friend uInt exp10(const uInt &N);
@@ -112,6 +113,7 @@ private:
 	uint32_t _suber(const uint32_t &a, const uint32_t &b, bool &borrow) const;
 	void _muler(const uint32_t &a, const uint32_t &b, uint32_t &p, uint64_t &carry) const;
 	uint32_t _diver(const uint32_t &a, const uint32_t &b, uint32_t &remainder) const;
+	uint32_t div(const uint32_t &_divident) noexcept(false);
 };
 
 class Int : public uInt
