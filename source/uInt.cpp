@@ -9,10 +9,10 @@ using namespace std;
 #define LG2_32_9 241726409 / 225843117 // 32 * lg2 / 9
 #define LOG2_10 1079882313 / 325076968 // DO NOT TOUCH
 
-static const uint32_t log2_[] = {0, 0, 1, 1, 2, 2, 2, 2, 3, 3};
-static const uint32_t exp10_[] = {
+static const uint32_t LOG2_[] = {0, 0, 1, 1, 2, 2, 2, 2, 3, 3};
+static const uint32_t EXP10_[] = {
     1, 10, 100, 1'000, 10'000, 100'000, 1'000'000, 10'000'000, 100'000'000, 1'000'000'000};
-static const char alphabet[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+static const char ALPHABET[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
 char uInt::delimiter = ',';
 unsigned uInt::interval = uInt::LEN;
@@ -195,23 +195,23 @@ uInt &uInt::operator^=(const uInt &A)
 
 uInt &uInt::operator>>=(const uInt &A)
 {
-    size_t sizeLen = A[0] / LEN;
+    size_t sizeLen = static_cast<size_t>(A) / LEN;
     if (sizeLen >= _size())
         return *this = 0;
     else if (sizeLen > 0)
         for (size_t i = 0; i < _size() - sizeLen; ++i)
             num[i] = num[i + sizeLen];
     num.resize(_size() - sizeLen);
-    uint32_t digitLen = A[0] % LEN;
+    uint32_t digitLen = static_cast<size_t>(A) % LEN;
     if (digitLen == 0)
         return *this;
-    uint32_t divisor = exp10_[digitLen], multiplier = exp10_[LEN - digitLen];
+    uint32_t shift = EXP10_[digitLen], kept = EXP10_[LEN - digitLen];
     uint32_t nextRemainder = 0;
     for (auto part = num.rbegin(); part != num.rend(); ++part)
     {
         uint32_t prevRemainder = nextRemainder;
-        nextRemainder = *part % divisor; // wasted in the last step
-        *part = *part / divisor + prevRemainder * multiplier;
+        nextRemainder = *part % shift; // wasted in the last step
+        *part = *part / shift + prevRemainder * kept;
     }
     if (num.back() == 0 && num.size() > 1)
         num.pop_back();
@@ -220,7 +220,7 @@ uInt &uInt::operator>>=(const uInt &A)
 
 uInt &uInt::operator<<=(const uInt &A)
 {
-    size_t sizeLen = A[0] / LEN;
+    size_t sizeLen = static_cast<size_t>(A) / LEN;
     if (sizeLen > 0)
     {
         num.resize(_size() + sizeLen);
@@ -229,16 +229,16 @@ uInt &uInt::operator<<=(const uInt &A)
         for (size_t i = 0; i < sizeLen; ++i)
             num[i] = 0;
     }
-    uint32_t digitLen = A[0] % LEN;
+    uint32_t digitLen = static_cast<size_t>(A) % LEN;
     if (digitLen == 0)
         return *this;
-    uint32_t divisor = exp10_[LEN - digitLen], multiplier = exp10_[digitLen];
+    uint32_t shift = EXP10_[digitLen], kept = EXP10_[LEN - digitLen];
     uint32_t nextCarry = 0;
     for (size_t i = sizeLen; i < _size(); ++i)
     {
         uint32_t prevCarry = nextCarry;
-        nextCarry = num[i] / divisor; // wasted in the last step
-        num[i] = num[i] % divisor * multiplier + prevCarry;
+        nextCarry = num[i] / kept; // wasted in the last step
+        num[i] = num[i] % kept * shift + prevCarry;
     }
     if (nextCarry > 0)
         num.push_back(nextCarry);
@@ -327,25 +327,29 @@ pair<uInt, uInt> uInt::divmod(const uInt &A) const
     }
     if (*this < A)
         return pair<uInt, uInt>(0, *this);
-    // attempt div, result Quot >= real Q
+    // attempt div, result Quot + 1 >= real Q
     size_t exceedLen = A.length() - LEN;
-    uInt maxQ = (*this >> exceedLen) / (A >> exceedLen)[0] + 2;
-    if (*this == maxQ * A)
-        return pair<uInt, uInt>(maxQ, 0);
+    uInt maxQ = (*this >> exceedLen) / (A >> exceedLen)[0];
+    uInt QA = maxQ * A;
+    if (*this >= QA)
+        return pair<uInt, uInt>(maxQ, *this - QA);
     // real Q > maxQ * 100'000'000 / 100'000'001
     uInt minQ = (maxQ << 8) / 100000001;
     while (minQ + 1 < maxQ) // *this < maxQ * A
     {
         uInt midQ = (maxQ + minQ) / 2;
-        uInt QA = midQ * A;
-        if (*this > QA)
+        uInt midQA = midQ * A;
+        if (*this > midQA)
+        {
             minQ = move(midQ);
-        else if (*this < QA)
+            QA = move(midQA);
+        }
+        else if (*this < midQA)
             maxQ = move(midQ);
         else
             return pair<uInt, uInt>(midQ, 0);
     }
-    return pair<uInt, uInt>(minQ, *this - minQ * A);
+    return pair<uInt, uInt>(minQ, *this - QA);
 }
 
 /** @return largest (2^n, n) that 2^n <= *this */
@@ -354,10 +358,10 @@ pair<uInt, uint64_t> uInt::approxExp2() const
     if (*this == 0)
         return pair<uInt, uint32_t>(0, 0);
     size_t len = LEN * (_size() - 1), i = 1;
-    for (; exp10_[i] <= num.back(); ++i)
+    for (; EXP10_[i] <= num.back(); ++i)
         ++len;
-    uint32_t firstNum = num.back() / exp10_[i - 1];
-    uint32_t power = log2_[firstNum] + len * LOG2_10; // error: -1~0
+    uint32_t firstNum = num.back() / EXP10_[i - 1];
+    uint32_t power = LOG2_[firstNum] + len * LOG2_10; // error: -1~0
     uInt expo = exp2(power), expo2 = expo * 2;
     if (*this < expo2)
         return pair<uInt, uint32_t>(expo, power);
@@ -400,9 +404,9 @@ string uInt::toString(const unsigned &base, const bool &suffix) const
     }
     assert(base <= 37);
     uInt thisCopy = *this;
-    string str(1, alphabet[thisCopy.div(base)]);
+    string str(1, ALPHABET[thisCopy.div(base)]);
     while (bool(thisCopy))
-        str += alphabet[thisCopy.div(base)];
+        str += ALPHABET[thisCopy.div(base)];
     reverse(str.begin(), str.end());
     if (suffix)
         str += '(' + to_string(base) + ')';
@@ -436,7 +440,7 @@ size_t uInt::length(const unsigned &base) const
     if (base == 10)
     {
         size_t len = LEN * (_size() - 1);
-        for (unsigned i = 1; exp10_[i] <= num.back(); ++i)
+        for (unsigned i = 1; EXP10_[i] <= num.back(); ++i)
             ++len;
         return len + 1;
     }

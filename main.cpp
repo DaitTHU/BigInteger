@@ -34,26 +34,38 @@ int main()
 		cout << i << "\t: " << combination(200, i) << endl;
 	*/
 
-	uInt b = fibonacci(100);
-	
-	/*
-	for (unsigned i = 1; i <= 100; i += 1)
-	{
-		uInt a = fibonacci(i);
-		uInt c = (b / a) * a;
-		if (!c.between(b - a, b, false, true))
-			cout << i << ' ' << (c <= b - 2 * a) << endl;
-	}
-	uInt a = fibonacci(62);
-	cout << b << " / " << a << endl;
-	cout << (b >> 4) << " / " << (a >> 4) << endl
-		 << (b >> 4) / (a >> 4) << endl;
-	*/
+	uInt A = fibonacci(10000);
+	// cout << A << endl;
 
-	uInt::setDelimiter(',', 0);
+	for (unsigned i = 100; i <= 1000; i += 10)
+	{
+		uInt a = fibonacci(i), b = A / a;
+		uInt c = b * a;
+		cout << i << " " << flush;
+		if (!c.between(A - a, A, false, true))
+		{
+			size_t l = a.length() - 9;
+			cout << i << ":\t" << A << " / " << a << endl
+				 << "\t" << (A >> l) << " / " << (a >> l) << endl
+				 << "\t" << ((A >> l) / (a >> l)) << endl
+				 << "\t" << b << endl
+				 << "\t" << (((A >> l) / (a >> l)) << 8) / 100000001 << endl
+				 << "\t" << A - c << " " << a << endl;
+		}
+	}
+	/*
+	 */
+
+	/*
+	uInt a = fibonacci(62);
+
+	cout << b << " / " << a << endl;
+	cout << b / a << endl;
+
 	uInt c("12345678910121314151617181920212223");
-	// for (unsigned i = 0; i < 100; i += 1)
-	//	cout << i << " <<:\t" << (c << i) << endl;
-	cout << (c << 1000).sciNote(50) << endl;
+	// cout << (c << 100) << endl;
+	for (unsigned i = 0; i < 100; i += 1)
+		cout << i << " <<:\t" << (c << i) << endl;
+	*/
 	return 0;
 }
