@@ -47,19 +47,12 @@ int main()
 
 	uInt a = fibonacci(62);
 
-	cout << b << " / " << a << endl;
-	cout << b / a << endl;
 	 */
 
-	for (unsigned i = 100; i <= 200; i += 10)
-	{
-		uInt c = fibonacci(i);
-		uInt sc = sqrt(c);
-		cout << i << " " << flush;
-		if (!c.between(sc ^ 2, (sc + 1) ^ 2))
-			cout << "!" << endl;
-	}
-	cout << endl;
+	uInt b("1234567891011121314151617181920");
+	b /= uInt("1145141919810");
+	uInt g = b ^ 3;
+	cout << g(40, 1) << endl;
 
 	/*
 	for (unsigned i = 0; i < 100; i += 1)

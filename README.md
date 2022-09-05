@@ -46,18 +46,23 @@ std::cout << "d > 10000? " << (d > 10000) << std::endl;
 std::cout << "a <= d < b? " << d.between(a, b) << std::endl;
 ```
 
-calculate is trivial. `^`, `>>` and `<<` are special.
+calculate is trivial. Moreover, `^`, `>>`, `<<`, `~` are redisigned to meet special calculation purposes. If you don't like them, you could `Bin`.
 
 ```cpp
 uInt e = a + b; // 1234567891011121314151617247392
 e -= 100;
 uInt f = c * d;
 b /= uInt("1145141919810"); // 1078091605637804892
-uInt g = b ^ 3;             // exponent, e.g. 2^4 = 16.
+// ^: exponent, e.g. 2^4 = 16.
+uInt g = b ^ 3;
 std::cout << g << std::endl; 
 >>> 1,253045939,477188663,853722164,624612006,875048962,971300288
-std::cout << (g >> 43) << std::endl; // shift for base-10
+// >>, <<: shift in base-10
+std::cout << (g >> 43) << std::endl;
 >>> 125,304593947
+// ~: square root, for ~g is a bit similar to √g
+std::cout << ~g << std::endl;
+>>> 1,119395345,477722032,435959354
 ```
 
 ⚠️ **WARNING 1:** ⚠️ Directly operating `uInt` with `string` is strongly discouraged. It's **NOT** JavaScript.
@@ -67,12 +72,15 @@ std::cout << f + "314159265358" << std::endl;       // this is evil.
 std::cout << f + uInt("314159265358") << std::endl; // use type-conversion at least
 ```
 
-⚠️ **WARNING 2:** ⚠️ The `^` operator has lower precedence than `+-`, even `==`. What's worse, unlike math, `^` combines left. So please use `()` when doing mixed operations involving power `^`. (Not elegant! 😫)
+⚠️ **WARNING 2:** ⚠️ The `^` operator has lower precedence than `+-`, even `==`. What's worse, unlike math, `^` combines left. So please use `()` when doing mixed operations involving power `^`.
+
+Also, to make it a bit elegant, you could use `g(n, 0)` to calculate `g^n` while `g(n, 1)` for the nth root of `g`, which is of the first precedence.
 
 ```cpp
 f = 2 + uInt(3) ^ 4;   // = 5 ^ 4 = 625
 f = 2 + (uInt(3) ^ 4); // = 2 + 81 = 83
 f = 3 ^ uInt(3) ^ 3;   // = 27 ^ 3 = 19683
+uInt h = g(40, 1);     // = 22
 ```
 
 and many related functions are provided

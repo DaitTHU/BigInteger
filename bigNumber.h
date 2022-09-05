@@ -43,7 +43,7 @@ public:
 	// unary arithmetic
 	uInt &operator+() { return *this; };
 	uInt operator-() = delete; // sorry, can't return Int.
-	uInt operator~() = delete;
+	uInt operator~();
 	template <typename T>
 	explicit operator T() const { return static_cast<T>(num[0]); }
 	explicit operator uint64_t() const;
@@ -71,6 +71,7 @@ public:
 	uInt operator<<(const uInt &A) const { return uInt(*this) <<= A; }
 	uInt operator&(const uInt &A) const = delete;
 	uInt operator|(const uInt &A) const = delete;
+	uInt operator()(const uInt &N, const bool &nthRoot) const;
 	// right relational
 	friend bool operator<(const uint32_t _num, const uInt &A) { return A > _num; }
 	friend bool operator>(const uint32_t _num, const uInt &A) { return A < _num; }
@@ -102,7 +103,6 @@ public:
 	uInt coarseDiv(const uInt &A, const std::size_t exactDigit = LEN) const;
 	std::pair<uInt, uint64_t> approxExp2() const;
 	friend uInt exp10(const uInt &N);
-	friend uInt sqrt(const uInt &A);
 	std::string toString(const unsigned &_base = 10, const bool &_suffix = false) const;
 	std::string sciNote(const std::size_t &_deciLength = LEN) const; // whether for ostream, or string?
 	uInt subInt(const unsigned &begin = 0, const unsigned &end = MAX) const;

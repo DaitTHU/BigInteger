@@ -175,7 +175,7 @@ uInt &uInt::operator^=(const uInt &A)
 {
     if (*this < 2)
         return *this;
-    switch (static_cast<uint64_t>(A))
+    switch (static_cast<size_t>(A))
     {
     case 0:
         return *this = 1;
@@ -290,6 +290,36 @@ istream &operator>>(istream &is, uInt &A)
     return is;
 }
 
+uInt uInt::operator~()
+{
+    if (*this < 2)
+        return *this;
+    uInt root(vector<uint32_t>(_size() / 2 + 2, 0));
+    root.num.back() = 1;
+    do // Newton
+        root = (root + *this / root) / 2;
+    while (root * root > *this);
+    return root;
+}
+
+/** @return nthRoot ? this ^ N : NthRoot(this) */
+uInt uInt::operator()(const uInt &N, const bool &nthRoot = false) const
+{
+    if (*this < 2)
+        return *this;
+    if (!nthRoot)
+        return *this ^ N;
+    size_t n = static_cast<size_t>(N);
+    uInt root(vector<uint32_t>(_size() / n + 2, 0));
+    root.num.back() = 1;
+    uInt rootn = root ^ (n - 1);
+    do {
+        root = ((n - 1) * root + *this / rootn) / n;
+        rootn = root ^ (n - 1);
+    } while (root * rootn > *this);
+    return root;
+}
+
 void uInt::setDelimiter(const char &_c, const unsigned &_interval)
 {
     if (_c == ' ' || _c == ',' || _c == ';' || _c == '\'')
@@ -356,6 +386,7 @@ pair<uInt, uInt> uInt::divmod(const uInt &A) const
 
 uInt uInt::coarseDiv(const uInt &A, const std::size_t exactDigit) const
 {
+    return 0;
 }
 
 /** @return largest (2^n, n) that 2^n <= *this */
@@ -376,22 +407,10 @@ pair<uInt, uint64_t> uInt::approxExp2() const
 
 uInt exp10(const uInt &N)
 {
-    static const uint32_t exp_10[] = {1, 10, 100, 1'000, 10'000, 100'000,
-                                      1'000'000, 10'000'000, 100'000'000};
-    vector<uint32_t> expo(N[0] / uInt::LEN + 1, 0);
-    expo.back() = exp_10[N[0] % uInt::LEN];
+    size_t n = static_cast<size_t>(N);
+    vector<uint32_t> expo(n / uInt::LENL + 1, 0);
+    expo.back() = EXP10_[n % uInt::LENL];
     return uInt(move(expo));
-}
-
-uInt sqrt(const uInt &A)
-{
-    if (A < 2)
-        return A;
-    uInt sqrtA(vector<uint32_t>(A._size() / 2 + 2, 0));
-    sqrtA.num.back() = 1;
-    while (sqrtA * sqrtA > A)
-        sqrtA = (sqrtA + A / sqrtA) / 2; // Newton
-    return sqrtA;
 }
 
 string uInt::toString(const unsigned &base, const bool &suffix) const
