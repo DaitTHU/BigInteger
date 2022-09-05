@@ -291,15 +291,14 @@ void uInt::setDelimiter(const char &_c, const unsigned &_interval)
     if (_c == ' ' || _c == ',' || _c == ';' || _c == '\'')
         delimiter = _c;
     else
-        cout << "ERROR: N/A delimiter, only \' \', "
-             << "\',\', \'\'\' and \';\' allowed." << endl;
+        cout << "ERROR: N/A delimiter, only \' \', \',\', \'\'\' and \';\' allowed." << endl;
     if (_interval == 0 || _interval == 3 || _interval == 9) // 4 or 10? maybe.
         interval = _interval;
     else
         cout << "ERROR: N/A interval, only 0, 3 and 9 allowed." << endl;
 }
 
-/** @param left @return pair(quotient, remainder) */
+/** @param left @return bool */
 bool uInt::between(const uInt &A, const uInt &B, const bool &includeA, const bool &includeB) const
 {
     switch ((includeA << 1) | includeB)

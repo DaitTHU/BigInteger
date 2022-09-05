@@ -310,7 +310,6 @@ public:
 	friend std::istream &operator>>(std::istream &is, Real &A);
 };
 
-
 class Complex
 {
 public:
@@ -347,23 +346,25 @@ public:
 	// other
 	// Real norm2() const { return a ^ 2 + b ^ 2; }
 };
+
 class Inf
 {
 private:
-	bool p;                        // postive
-	std::size_t orderId = 0;       // order of this
-	static std::set<double> order; // infinity order
+	bool p;             // postive
+	double order = 1.0; // infinity order
+	Inf(bool _p, double _o) : p(_p), order(_o) {}
 
 public:
 	Inf(bool positive = true) : p(positive) {}
 	template <typename T>
-	Inf(const T &A) : p(A > 0) { if (A == 0) std::cerr << "assign 0 to infinity" << std::endl; }
+	Inf(const T &A) : p (A > 0), order(0) { if (A == 0) std::cerr << "ERROR: assign 0 to infinity" << std::endl; }
 	Inf(const Inf &_inf) = default;
 	Inf(Inf &&_inf) = default;
 	~Inf() = default;
-	Inf &operator=(const Inf &_inf) { p = _inf.p; return *this; }
-	Inf operator+() const { return Inf(true); }
-	Inf operator-() const { return Inf(false); }
+	Inf &operator=(const Inf &_inf) { p = _inf.p, order = _inf.order; return *this; }
+	Inf operator+() const { return Inf(p, order); }
+	Inf operator-() const { return Inf(-p, order); }
+	Inf operator~() const { return Inf(p, -order); }
 	template <typename T>
 	bool operator>(const T &A) { return p; }
 	template <typename T>
@@ -393,13 +394,10 @@ public:
 	template <typename T>
 	friend bool operator!=(const T &A, const Inf &_inf) { return _inf != A; }
 	// operator
-	Inf &operator+=(const Inf &_inf) { return *this; }
-	Inf &operator-=(const Inf &_inf) { return *this; }
-	Inf &operator*=(const Inf &_inf) { p = (p == _inf.p); return *this; }
-	template <typename T>
-	Inf &operator/=(const T &A) { return *this *= Inf(A); } // lmao
-	Inf &operator/=(const Inf &_inf) = delete;
-	Inf &operator/=(const Complex &A) = delete;
+	Inf &operator+=(const Inf &_inf);
+	Inf &operator-=(const Inf &_inf) { return *this += -_inf; }
+	Inf &operator*=(const Inf &_inf);
+	Inf &operator/=(const Inf &_inf) { return *this *= ~_inf; }
 	template <typename T>
 	Inf operator+(const T &A) const { return Inf(*this) += A; }
 	template <typename T>
@@ -415,11 +413,11 @@ public:
 	template <typename T>
 	friend Inf operator*(const T &A, const Inf &_inf) { return _inf * A; }
 	template <typename T>
-	friend Inf operator/(const T &A, const Inf &_inf) { return _inf * A; } // lmao again
-	Inf &operator++() { return *this += 1; }
-	Inf &operator++(int) { return *this += 1; }
-	Inf &operator--() { return *this -= 1; }
-	Inf &operator--(int) { return *this -= 1; }
+	friend T operator/(const T &A, const Inf &_inf) { return static_cast<T>(0); };
+	Inf &operator++() { return *this; }
+	Inf &operator++(int) { return *this; }
+	Inf &operator--() { return *this; }
+	Inf &operator--(int) { return *this; }
 	friend std::ostream &operator<<(std::ostream &os, const Inf &_inf) { os << (_inf.p ? "inf" : "-inf"); return os; }
 };
 
