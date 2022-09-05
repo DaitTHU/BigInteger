@@ -36,7 +36,7 @@ int main()
 
 	uInt b = fibonacci(100);
 	uInt c(999'999'999);
-	cout << b << endl;
+	cout << INF + INF << endl;
 	// b /= 0;
 	// b %= 0;
 	// b.divmod(0);

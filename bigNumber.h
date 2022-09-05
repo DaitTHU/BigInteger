@@ -4,6 +4,7 @@
 #include <vector>  // std::vector
 #include <string>  // std::string
 #include <utility> // std::pair
+#include <set>     // std::set
 
 class uInt
 {
@@ -85,10 +86,10 @@ public:
 	friend uInt operator>>(const uint32_t _num, const uInt &A) { return uInt(_num) >> A; }
 	friend uInt operator<<(const uint32_t _num, const uInt &A) { return uInt(_num) << A; }
 	// ++/--
-	uInt operator++() { return *this += 1; }
-	uInt operator++(int) { return *this += 1; } // may change, i don't konw.
-	uInt operator--() { return *this -= 1; }
-	uInt operator--(int) { return *this -= 1; }
+	uInt &operator++() { return *this += 1; }
+	uInt &operator++(int) { return *this += 1; } // may change, i don't konw.
+	uInt &operator--() { return *this -= 1; }
+	uInt &operator--(int) { return *this -= 1; }
 	// I/O stream
 	friend std::ostream &operator<<(std::ostream &os, const uInt &A);
 	friend std::istream &operator>>(std::istream &is, uInt &A);
@@ -175,10 +176,10 @@ public:
 	Int &operator%=(const Int &A) { return *this = *this % A; }
 	Int &operator^=(const Int &A) { return *this = *this ^ A; }
 	// ++/--
-	Int operator++() { return *this += 1; }
-	Int operator++(int) { return *this += 1; } // may change, i don't konw.
-	Int operator--() { return *this -= 1; }
-	Int operator--(int) { return *this -= 1; }
+	Int &operator++() { return *this += 1; }
+	Int &operator++(int) { return *this += 1; }
+	Int &operator--() { return *this -= 1; }
+	Int &operator--(int) { return *this -= 1; }
 	// I/O stream
 	friend std::ostream &operator<<(std::ostream &os, const Int &A);
 	friend std::istream &operator>>(std::istream &is, Int &A);
@@ -309,26 +310,12 @@ public:
 	friend std::istream &operator>>(std::istream &is, Real &A);
 };
 
-class Inf
-{
-private:
-	bool p;
-
-public:
-	Inf(bool positive = true) : p(positive) {}
-	Inf operator+() const { return Inf(true); }
-	Inf operator-() const { return Inf(false); }
-};
 
 class Complex
 {
-protected:
-	Real a = 0, b = 0; // a + ib
-
 public:
-	Complex() {}
-	Complex(double _a, double _b = 0) : a(_a), b(_b) {}
-	Complex(Real _a, Real _b) : a(_a), b(_b) {}
+	Real a, b; // a + ib
+	Complex(Real _a = 0, Real _b = 0) : a(_a), b(_b) {}
 	Complex(const std::string &_c);
 	Complex(const Complex &C) = default;
 	Complex(Complex &&C) = default;
@@ -360,6 +347,81 @@ public:
 	// other
 	// Real norm2() const { return a ^ 2 + b ^ 2; }
 };
+class Inf
+{
+private:
+	bool p;                        // postive
+	std::size_t orderId = 0;       // order of this
+	static std::set<double> order; // infinity order
+
+public:
+	Inf(bool positive = true) : p(positive) {}
+	template <typename T>
+	Inf(const T &A) : p(A > 0) { if (A == 0) std::cerr << "assign 0 to infinity" << std::endl; }
+	Inf(const Inf &_inf) = default;
+	Inf(Inf &&_inf) = default;
+	~Inf() = default;
+	Inf &operator=(const Inf &_inf) { p = _inf.p; return *this; }
+	Inf operator+() const { return Inf(true); }
+	Inf operator-() const { return Inf(false); }
+	template <typename T>
+	bool operator>(const T &A) { return p; }
+	template <typename T>
+	friend bool operator>(const T &A, const Inf &_inf) { return !_inf.p; }
+	friend bool operator>(const Complex &A, const Inf &_inf) = delete;
+	bool operator>(const Complex &A) = delete;
+	bool operator>(const Inf &_inf) = delete;
+	template <typename T>
+	bool operator==(const T &A) = delete;
+	// below uses above
+	template <typename T>
+	bool operator<(const T &A) { return A > *this; }
+	template <typename T>
+	bool operator>=(const T &A) { return !(*this < A); }
+	template <typename T>
+	bool operator<=(const T &A) { return !(*this > A); }
+	template <typename T>
+	bool operator!=(const T &A) { return !(*this == A); }
+	template <typename T>
+	friend bool operator==(const T &A, const Inf &_inf) { return _inf == A; }
+	template <typename T>
+	friend bool operator<(const T &A, const Inf &_inf) { return _inf > A; }
+	template <typename T>
+	friend bool operator>=(const T &A, const Inf &_inf) { return _inf <= A; }
+	template <typename T>
+	friend bool operator<=(const T &A, const Inf &_inf) { return _inf >= A; }
+	template <typename T>
+	friend bool operator!=(const T &A, const Inf &_inf) { return _inf != A; }
+	// operator
+	Inf &operator+=(const Inf &_inf) { return *this; }
+	Inf &operator-=(const Inf &_inf) { return *this; }
+	Inf &operator*=(const Inf &_inf) { p = (p == _inf.p); return *this; }
+	template <typename T>
+	Inf &operator/=(const T &A) { return *this *= Inf(A); } // lmao
+	Inf &operator/=(const Inf &_inf) = delete;
+	Inf &operator/=(const Complex &A) = delete;
+	template <typename T>
+	Inf operator+(const T &A) const { return Inf(*this) += A; }
+	template <typename T>
+	Inf operator-(const T &A) const { return Inf(*this) -= A; }
+	template <typename T>
+	Inf operator*(const T &A) const { return Inf(*this) *= A; }
+	template <typename T>
+	Inf operator/(const T &A) const { return Inf(*this) /= A; }
+	template <typename T>
+	friend Inf operator+(const T &A, const Inf &_inf) { return _inf + A; }
+	template <typename T>
+	friend Inf operator-(const T &A, const Inf &_inf) { return -_inf + A; }
+	template <typename T>
+	friend Inf operator*(const T &A, const Inf &_inf) { return _inf * A; }
+	template <typename T>
+	friend Inf operator/(const T &A, const Inf &_inf) { return _inf * A; } // lmao again
+	Inf &operator++() { return *this += 1; }
+	Inf &operator++(int) { return *this += 1; }
+	Inf &operator--() { return *this -= 1; }
+	Inf &operator--(int) { return *this -= 1; }
+	friend std::ostream &operator<<(std::ostream &os, const Inf &_inf) { os << (_inf.p ? "inf" : "-inf"); return os; }
+};
 
 template <typename F = Real> // Real, Complex
 class Poly					 // Polynomial
@@ -376,3 +438,7 @@ public:
 	F operator()(const F &x, const unsigned &dOrder = 0) const; // f(x)
 	F &operator[](const unsigned &i) { return coef[i]; }
 };
+
+// namespace Constant
+
+static const Inf INF(true);
