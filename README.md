@@ -4,21 +4,20 @@ Have you ever imaged how to calculate `1000!` in `C++`? Well, actually
 
 $$1000! = 4.0238726 \times 10^{2567},$$
 
-so it absolutely exceeds the limit of `int` even `unsigned long long` (which is merely `1e20`). But, luckily, `C++` provide us with `array`, so it's possible to combine multiple `int` to expand the boundaries of the representable range. Comparing to ordinary `C array`, the `stl vector` is obviously more convenient, and that's how I realize the Big-Number in `C++`.
+so it absolutely exceeds the limit of `int`, even `unsigned long long`, which is merely `1e20`. But luckily, `C++` provide us with `array`, so it's possible to combine multiple `int`s to expand the boundaries of the representable range. Comparing to ordinary `C array`, the `stl vector` is obviously more convenient, and that's how I realize the Big-Number in `C++`.
 
 ## `bigNumber.h`
 
-In `bigNumber.h`, I construct couples of classes: `uInt`, `Int`, `Fraction`, `Real` and `Complex`, and overload operators to fit the original operating habits.
+In `bigNumber.h`, I construct couples of classes: `uInt`, `Int`, `Frac`, `Real`, `Complex`, `Inf` and `Poly` and overload operators to fit the custom operating-habits.
 
 ### 1. `uInt` class
 
-You can create a `uInt` object by `int`, `char*` and `string`:
+You can create a `uInt` object by `int` and `string`:
 
 ```cpp
 uInt a = 65472;
 uInt A = 12345678901234567890ULL; // support unsigned long long
 uInt b("1234567891011121314151617181920");
-// uInt b = "1234567891011121314151617181920"; // error: can't tell char* from int
 uInt c = b, d;
 std::cout << "You can also input the number you want: ";
 std::cin >> d;
@@ -33,20 +32,21 @@ uInt largeNegative = -100; // 18446744073709551516
 For `string`-constructor, `strings` can only consist of numbers and leading signs (which will be omitted).
 
 ```cpp
-uInt positiveInt("-2718281828");         // 2718281828
+uInt positiveInt = std::string("-2718"); // 2718
 uInt hilariousDemo("-+-+-+-1414213562"); // 1414213562
+// uInt errorDemo0 = "2275191666"        // string != const char*
 // uInt errorDemo1("114514+1919810")     // Constructors don't do math
 // uInt errorDemo2("0xABCDEF")           // only base-10 readable
 ```
 
-`uInt`s are comparable. If you perfer `a < x < b` like Python, you can use `uInt::between`!
+`uInt`s are comparable. If you perfer `a < x < b` like Python, you can use `uInt::between(A, B, includeA = true, includeB = false)`.
 
 ```cpp
 std::cout << "d > 10000? " << (d > 10000) << std::endl;
 std::cout << "a <= d < b? " << d.between(a, b) << std::endl;
 ```
 
-calculate is trivial.
+calculate is trivial. `^`, `>>` and `<<` are special.
 
 ```cpp
 uInt e = a + b; // 1234567891011121314151617247392
@@ -59,7 +59,7 @@ std::cout << g << std::endl;
 std::cout << (g >> 43) << std::endl; // shift for base-10
 >>> 125,304593947
 ```
-⚠️ **WARNING 1:** ⚠️ Directly operating `uInt` with `string` is strongly discouraged. ~~It's **NOT** JavaScript.~~
+⚠️ **WARNING 1:** ⚠️ Directly operating `uInt` with `string` is strongly discouraged. It's **NOT** JavaScript.
 
 ```cpp
 std::cout << f + "314159265358" << std::endl;       // this is evil.
@@ -111,7 +111,16 @@ consisting of `Int` as the integer part and `vector<int>` as the decimal part.
 
 consisting of two `Real` as the real part and imaginary part.
 
-### 6. `Poly` class (TODO)
+### 6. `Inf` class
+
+Infinity, consisiting of sign and order. Numbers could compare or operator with `Inf`. Const `INF` is provided.
+
+```cpp
+b < INF; // false
+c + INF; // INF
+```
+
+### 7. `Poly` class (TODO)
 
 Polynomial, consisting of multiple `Real` coefficients.
 
