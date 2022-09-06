@@ -1,4 +1,5 @@
-#pragma once
+#ifndef BIG_NUMBER_H_
+#define BIG_NUMBER_H_
 #include <iostream> // std::ostream...
 // #include <fstream>
 #include <vector>  // std::vector
@@ -9,35 +10,35 @@
 class uInt
 {
 protected:
-	std::vector<uint32_t> num{};
-	static const uint32_t LEN = 9;			   // utilization: 9 / (32lg2) = 93.4%
-	static const uint32_t MAX = 1'000'000'000; // 0x100000000 = 4'294'967'296
-	static char delimiter;
-	static unsigned interval;
+	std::vector<uint32_t> num_{};
+	static const uint32_t LEN_ = 9;			   // utilization: 9 / (32lg2) = 93.4%
+	static const uint32_t MAX_ = 1'000'000'000; // 0x100000000 = 4'294'967'296
+	static char delimiter_;
+	static unsigned interval_;
 	// restricted constructor
-	uInt(const std::vector<uint32_t> &_num) : num(_num) {}
-	uInt(std::vector<uint32_t> &&_num) : num(std::move(_num)) {}
+	uInt(const std::vector<uint32_t> &n) : num_(n) {}
+	uInt(std::vector<uint32_t> &&n) : num_(std::move(n)) {}
 
 public:
-	uInt(const uint64_t &_num = 0);
-	uInt(const std::string &_num);
-	uInt(const uInt &A) : num(A.num) {}
-	uInt(uInt &&A) : num(std::move(A.num)) {}
+	uInt(const uint64_t &n = 0);
+	uInt(const std::string &n);
+	uInt(const uInt &A) : num_(A.num_) {}
+	uInt(uInt &&A) : num_(std::move(A.num_)) {}
 	virtual ~uInt() = default;
 	// basic: =, <, ==, +=, -=,...
-	uInt &operator=(const uInt &A) { num = A.num; return *this; }
-	uInt &operator=(uInt &&A) { num = std::move(A.num); return *this; }
+	uInt &operator=(const uInt &A) { num_ = A.num_; return *this; }
+	uInt &operator=(uInt &&A) { num_ = std::move(A.num_); return *this; }
 	bool operator<(const uInt &A) const;
-	bool operator==(const uInt &A) const { return num == A.num; }
+	bool operator==(const uInt &A) const { return num_ == A.num_; }
 	uInt &operator+=(const uInt &A);
 	uInt &operator-=(const uInt &A);
-	uInt &operator*=(const uint32_t &_num);
+	uInt &operator*=(const uint32_t &n);
 	uInt &operator*=(const uInt &A);
-	uInt &operator/=(const uint32_t &_num);
-	uInt &operator%=(const uint32_t &_num);
+	uInt &operator/=(const uint32_t &n);
+	uInt &operator%=(const uint32_t &n);
 	uInt &operator^=(const uInt &A);
-	uInt &operator>>=(const std::size_t &_num);
-	uInt &operator<<=(const std::size_t &_num);
+	uInt &operator>>=(const std::size_t &n);
+	uInt &operator<<=(const std::size_t &n);
 	uInt &operator&=(const uInt &A) = delete;
 	uInt &operator|=(const uInt &A) = delete;
 	// unary arithmetic
@@ -45,10 +46,10 @@ public:
 	uInt operator-() = delete; // sorry, can't return Int.
 	uInt operator~();
 	template <typename T>
-	explicit operator T() const { return static_cast<T>(num[0]); }
+	explicit operator T() const { return static_cast<T>(num_[0]); }
 	explicit operator uint64_t() const;
 	explicit operator std::string() const { return toString(); }
-	explicit operator bool() const { return _size() > 1 || num[0] > 0; } // != 0
+	explicit operator bool() const { return size_() > 1 || num_[0] > 0; } // != 0
 	// derivative
 	bool operator>(const uInt &A) const { return A < *this; }
 	bool operator>=(const uInt &A) const { return !(*this < A); }
@@ -56,10 +57,10 @@ public:
 	bool operator!=(const uInt &A) const { return !(*this == A); }
 	uInt operator+(const uInt &A) const { return uInt(*this) += A; }
 	uInt operator-(const uInt &A) const { return uInt(*this) -= A; }
-	uInt operator*(const uint32_t &_num) const { return uInt(*this) *= _num; }
+	uInt operator*(const uint32_t &n) const { return uInt(*this) *= n; }
 	uInt operator*(const uInt &A) const { return uInt(*this) *= A; }
-	uInt operator/(const uint32_t &_num) const { return uInt(*this) /= _num; }
-	uInt operator%(const uint32_t &_num) const { return uInt(*this) %= _num; }
+	uInt operator/(const uint32_t &n) const { return uInt(*this) /= n; }
+	uInt operator%(const uint32_t &n) const { return uInt(*this) %= n; }
 	uInt operator/(const uInt &A) const { return divmod(A).first; }
 	uInt operator%(const uInt &A) const { return divmod(A).second; }
 	uInt &operator/=(const uInt &A) { return *this = *this / A; }
@@ -73,21 +74,21 @@ public:
 	uInt operator|(const uInt &A) const = delete;
 	uInt operator()(const uInt &N, const bool &nthRoot) const;
 	// right relational
-	friend bool operator<(const uint32_t _num, const uInt &A) { return A > _num; }
-	friend bool operator>(const uint32_t _num, const uInt &A) { return A < _num; }
-	friend bool operator==(const uint32_t _num, const uInt &A) { return A == _num; }
-	friend bool operator<=(const uint32_t _num, const uInt &A) { return A >= _num; }
-	friend bool operator>=(const uint32_t _num, const uInt &A) { return A <= _num; }
-	friend bool operator!=(const uint32_t _num, const uInt &A) { return A != _num; }
+	friend bool operator<(const uint32_t n, const uInt &A) { return A > n; }
+	friend bool operator>(const uint32_t n, const uInt &A) { return A < n; }
+	friend bool operator==(const uint32_t n, const uInt &A) { return A == n; }
+	friend bool operator<=(const uint32_t n, const uInt &A) { return A >= n; }
+	friend bool operator>=(const uint32_t n, const uInt &A) { return A <= n; }
+	friend bool operator!=(const uint32_t n, const uInt &A) { return A != n; }
 	// right binary arithmetic
-	friend uInt operator+(const uint32_t _num, const uInt &A) { return A + _num; }
-	friend uInt operator-(const uint32_t _num, const uInt &A) { return uInt(_num) - A; }
-	friend uInt operator*(const uint32_t _num, const uInt &A) { return A * _num; }
-	friend uInt operator/(const uint32_t _num, const uInt &A) { return uInt(_num) / A; }
-	friend uInt operator%(const uint32_t _num, const uInt &A) { return uInt(_num) % A; }
-	friend uInt operator^(const uint32_t _num, const uInt &A) { return uInt(_num) ^ A; }
-	friend uInt operator>>(const uint32_t _num, const uInt &A) { return uInt(_num) >> A; }
-	friend uInt operator<<(const uint32_t _num, const uInt &A) { return uInt(_num) << A; }
+	friend uInt operator+(const uint32_t n, const uInt &A) { return A + n; }
+	friend uInt operator-(const uint32_t n, const uInt &A) { return uInt(n) - A; }
+	friend uInt operator*(const uint32_t n, const uInt &A) { return A * n; }
+	friend uInt operator/(const uint32_t n, const uInt &A) { return uInt(n) / A; }
+	friend uInt operator%(const uint32_t n, const uInt &A) { return uInt(n) % A; }
+	friend uInt operator^(const uint32_t n, const uInt &A) { return uInt(n) ^ A; }
+	friend uInt operator>>(const uint32_t n, const uInt &A) { return uInt(n) >> A; }
+	friend uInt operator<<(const uint32_t n, const uInt &A) { return uInt(n) << A; }
 	// ++/--
 	uInt &operator++() { return *this += 1; }
 	uInt &operator++(int) { return *this += 1; } // may change, i don't konw.
@@ -96,82 +97,82 @@ public:
 	// I/O stream
 	friend std::ostream &operator<<(std::ostream &os, const uInt &A);
 	friend std::istream &operator>>(std::istream &is, uInt &A);
-	static void setDelimiter(const char &_c = ',', const unsigned &_interval = LEN);
+	static void setDelimiter(const char &_c = ',', const unsigned &_interval = LEN_);
 	// others
 	bool between(const uInt &A, const uInt &B, const bool &includeA = true, const bool &includeB = false) const;
 	std::pair<uInt, uInt> divmod(const uInt &A) const;
-	uInt coarseDiv(const uInt &A, const std::size_t exactDigit = LEN) const;
+	uInt coarseDiv(const uInt &A, const std::size_t exactDigit = LEN_) const;
 	std::pair<uInt, uint64_t> approxExp2() const;
 	friend uInt exp10(const uInt &N);
 	std::string toString(const unsigned &_base = 10, const bool &_suffix = false) const;
-	std::string sciNote(const std::size_t &_deciLength = LEN) const; // whether for ostream, or string?
-	uInt subInt(const unsigned &begin = 0, const unsigned &end = MAX) const;
+	std::string sciNote(const std::size_t &_deciLength = LEN_) const; // whether for ostream, or string?
+	uInt subInt(const unsigned &begin = 0, const unsigned &end = MAX_) const;
 	std::size_t length(const unsigned &_base = 10) const;
 
 private:
-	static constexpr size_t LENL = static_cast<std::size_t>(LEN); // size_t
-	static constexpr uint64_t MAXL = static_cast<uint64_t>(MAX);  // uint64_t
-	uint32_t operator[](const uint32_t &i) const { return num[i]; }
-	std::size_t _size() const { return num.size(); }
-	void _normalize();
-	uint32_t _adder(const uint32_t &a, const uint32_t &b, uint32_t &carry) const;
-	uint32_t _suber(const uint32_t &a, const uint32_t &b, bool &borrow) const;
-	void _muler(const uint32_t &a, const uint32_t &b, uint32_t &p, uint64_t &carry) const;
-	uint32_t _diver(const uint32_t &a, const uint32_t &b, uint32_t &remainder) const;
-	uint32_t div(const uint32_t &_divident) noexcept(false);
+	static constexpr size_t LENL_ = static_cast<std::size_t>(LEN_); // size_t
+	static constexpr uint64_t MAXL_ = static_cast<uint64_t>(MAX_);  // uint64_t
+	uint32_t operator[](const uint32_t &i) const { return num_[i]; }
+	std::size_t size_() const { return num_.size(); }
+	void normalize_();
+	uint32_t adder_(const uint32_t &a, const uint32_t &b, uint32_t &carry) const;
+	uint32_t suber_(const uint32_t &a, const uint32_t &b, bool &borrow) const;
+	void muler_(const uint32_t &a, const uint32_t &b, uint32_t &p, uint64_t &carry) const;
+	uint32_t diver_(const uint32_t &a, const uint32_t &b, uint32_t &remainder) const;
+	uint32_t div_(const uint32_t &_divident) noexcept(false);
 };
 
 class Int : public uInt
 {
 protected:
 	bool p; // positive
-	Int(const std::vector<uint32_t> &_num, bool _p = true) : uInt(_num), p(_p) {}
+	Int(const std::vector<uint32_t> &n, bool _p = true) : uInt(n), p(_p) {}
 
 public:
-	Int(const int64_t &_num = 0) : uInt(abs(_num)), p(_num >= 0) {}
-	Int(const std::string &_num) : uInt(_num), p(_num[0] != '-') {}
+	Int(const int64_t &n = 0) : uInt(abs(n)), p(n >= 0) {}
+	Int(const std::string &n) : uInt(n), p(n[0] != '-') {}
 	Int(const uInt &A, bool _p = true) : uInt(A), p(_p) {}
 	Int(uInt &&A, bool _p = true) : uInt(A), p(_p) {}
 	Int(const Int &A) = default;
 	Int(Int &&A) = default;
 	virtual ~Int() = default;
 	// assignment
-	Int &operator=(const Int &A) { num = A.num, p = A.p; return *this; }
-	Int &operator=(Int &&A) { num = std::move(A.num), p = A.p; return *this; }
+	Int &operator=(const Int &A) { num_ = A.num_, p = A.p; return *this; }
+	Int &operator=(Int &&A) { num_ = std::move(A.num_), p = A.p; return *this; }
 	// relational
-	bool operator>(const Int &A) const; //{ return p == A.p ? p ? uInt::operator>(A.num) : uInt::operator<(A.num) : p; }
+	bool operator>(const Int &A) const; //{ return p == A.p ? p ? uInt::operator>(A.num_) : uInt::operator<(A.num_) : p; }
 	bool operator<(const Int &A) const { return A > *this; }
-	bool operator==(const Int &A) const { return num == A.num && p == A.p; }
+	bool operator==(const Int &A) const { return num_ == A.num_ && p == A.p; }
 	bool operator<=(const Int &A) const { return !operator>(A); }
 	bool operator>=(const Int &A) const { return !operator<(A); }
 	bool operator!=(const Int &A) const { return !operator==(A); }
 	// unary arithmetic
-	Int operator+() const { return Int(num); } // abs
-	Int operator-() const { return Int(num, !p); }
+	Int operator+() const { return Int(num_); } // abs
+	Int operator-() const { return Int(num_, !p); }
 	Int operator~() = delete;
 	//  binary arithmetic
-	Int operator+(const Int &A) const; // { return p == A.p ? Int(uInt::operator+(A.num), p) : operator-(-A); }
-	Int operator-(const Int &A) const; // { return p == A.p ? uInt::operator>(A.num) ? Int(uInt::operator-(A.num), p) : Int(uInt(A.num) - uInt(*this), !p) : operator+(-A); }
-	Int operator*(const Int &A) const; // { return p == A.p ? Int(uInt::operator*(A.num)) : Int(uInt::operator*(A.num), false); }
-	Int operator/(const Int &A) const; // { return p == A.p ? Int(uInt::operator/(A.num)) : Int(uInt::operator/(A.num), false); }
-	Int operator%(const Int &A) const; // { return p == A.p ? Int(uInt::operator%(A.num)) : Int(uInt::operator%(A.num), false); }
+	Int operator+(const Int &A) const; // { return p == A.p ? Int(uInt::operator+(A.num_), p) : operator-(-A); }
+	Int operator-(const Int &A) const; // { return p == A.p ? uInt::operator>(A.num_) ? Int(uInt::operator-(A.num_), p) : Int(uInt(A.num_) - uInt(*this), !p) : operator+(-A); }
+	Int operator*(const Int &A) const; // { return p == A.p ? Int(uInt::operator*(A.num_)) : Int(uInt::operator*(A.num_), false); }
+	Int operator/(const Int &A) const; // { return p == A.p ? Int(uInt::operator/(A.num_)) : Int(uInt::operator/(A.num_), false); }
+	Int operator%(const Int &A) const; // { return p == A.p ? Int(uInt::operator%(A.num_)) : Int(uInt::operator%(A.num_), false); }
 	Int operator^(const Int &A) const;
 	Int operator&(const Int &A) const = delete;
 	Int operator|(const Int &A) const = delete;
 	// right relational
-	friend bool operator<(const int32_t _num, const Int &A) { return A > _num; }
-	friend bool operator>(const int32_t _num, const Int &A) { return A < _num; }
-	friend bool operator==(const int32_t _num, const Int &A) { return A == _num; }
-	friend bool operator<=(const int32_t _num, const Int &A) { return A >= _num; }
-	friend bool operator>=(const int32_t _num, const Int &A) { return A <= _num; }
-	friend bool operator!=(const int32_t _num, const Int &A) { return A != _num; }
+	friend bool operator<(const int32_t n, const Int &A) { return A > n; }
+	friend bool operator>(const int32_t n, const Int &A) { return A < n; }
+	friend bool operator==(const int32_t n, const Int &A) { return A == n; }
+	friend bool operator<=(const int32_t n, const Int &A) { return A >= n; }
+	friend bool operator>=(const int32_t n, const Int &A) { return A <= n; }
+	friend bool operator!=(const int32_t n, const Int &A) { return A != n; }
 	// right binary arithmetic
-	friend Int operator+(const int32_t _num, const Int &A) { return A + _num; }
-	friend Int operator-(const int32_t _num, const Int &A) { return Int(_num) - A; }
-	friend Int operator*(const int32_t _num, const Int &A) { return A * _num; }
-	friend Int operator/(const int32_t _num, const Int &A) { return Int(_num) / A; }
-	friend Int operator%(const int32_t _num, const Int &A) { return Int(_num) % A; }
-	friend Int operator^(const int32_t _num, const Int &A) { return Int(_num) ^ A; }
+	friend Int operator+(const int32_t n, const Int &A) { return A + n; }
+	friend Int operator-(const int32_t n, const Int &A) { return Int(n) - A; }
+	friend Int operator*(const int32_t n, const Int &A) { return A * n; }
+	friend Int operator/(const int32_t n, const Int &A) { return Int(n) / A; }
+	friend Int operator%(const int32_t n, const Int &A) { return Int(n) % A; }
+	friend Int operator^(const int32_t n, const Int &A) { return Int(n) ^ A; }
 	// arithmetic-assignment
 	Int &operator+=(const Int &A) { return *this = *this + A; }
 	Int &operator-=(const Int &A) { return *this = *this - A; }
@@ -197,9 +198,9 @@ protected:
 
 public:
 	Frac() {}
-	Frac(const int32_t &_num) : nume(_num), deno(1) {}
+	Frac(const int32_t &n) : nume(n), deno(1) {}
 	Frac(const Int &_nume, const uInt &_deno = 1) : nume(_nume), deno(_deno) {}
-	// Frac(Real _num);
+	// Frac(Real n);
 	Frac(const std::string _f);
 	Frac(const Frac &A) = default;
 	Frac(Frac &&A) = default;
@@ -269,18 +270,18 @@ public:
 	// assignment
 	Real &operator=(const Real &A)
 	{
-		num = A.num, p = A.p, dec = A.dec;
+		num_ = A.num_, p = A.p, dec = A.dec;
 		return *this;
 	}
 	Real &operator=(Real &&A)
 	{
-		num = move(A.num), p = A.p, dec = move(A.dec);
+		num_ = move(A.num_), p = A.p, dec = move(A.dec);
 		return *this;
 	}
 	// relational
 	bool operator<(const Real &A) const;
 	bool operator>(const Real &A) const { return A < *this; }
-	bool operator==(const Real &A) const { return num == A.num; }
+	bool operator==(const Real &A) const { return num_ == A.num_; }
 	bool operator<=(const Real &A) const { return !operator>(A); }
 	bool operator>=(const Real &A) const { return !operator<(A); }
 	bool operator!=(const Real &A) const { return !operator==(A); }
@@ -351,7 +352,7 @@ public:
 	// Real norm2() const { return a ^ 2 + b ^ 2; }
 };
 
-class Inf
+static const class Inf
 {
 private:
 	bool p;             // postive
@@ -423,7 +424,7 @@ public:
 	Inf &operator--() { return *this; }
 	Inf &operator--(int) { return *this; }
 	friend std::ostream &operator<<(std::ostream &os, const Inf &_inf) { os << (_inf.p ? "inf" : "-inf"); return os; }
-};
+} INF(true);
 
 template <typename F = Real> // Real, Complex
 class Poly					 // Polynomial
@@ -443,4 +444,5 @@ public:
 
 // namespace Constant
 
-static const Inf INF(true);
+
+#endif

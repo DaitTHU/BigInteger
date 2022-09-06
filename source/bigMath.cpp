@@ -20,8 +20,10 @@ uInt exp2(const uInt &N)
 
 uInt factorial(const uInt &N)
 {
+    static const double LOG10_[] = {
+        0, 0, .30103, .47712, .60206, .69897, .77815, .84510, .90309, .95424};
     uInt result = 1;
-    for (unsigned i = 2; i <= N; ++i)
+    for (size_t i = static_cast<size_t>(N); i > 1; --i)
         result *= i;
     return result;
 }

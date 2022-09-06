@@ -47,12 +47,22 @@ int main()
 
 	uInt a = fibonacci(62);
 
-	 */
 
 	uInt b("1234567891011121314151617181920");
 	b /= uInt("1145141919810");
 	uInt g = b ^ 3;
-	cout << g(40, 1) << endl;
+
+	clock_t tic = clock();
+	cout << factorial(100).sciNote() << endl
+		 << factorial(1000).sciNote() << endl
+		 << factorial(10000).sciNote() << endl
+		 << (double)(clock() - tic) / CLOCKS_PER_SEC << "s" << endl;
+
+	for (unsigned i = 1; i <= 100; ++i)
+		cout << i << ": " << factorial(i).length() / 9 << endl;
+	 */
+
+	cout << uInt("5424").toString(2) << endl;
 
 	/*
 	for (unsigned i = 0; i < 100; i += 1)
