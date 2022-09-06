@@ -7,25 +7,16 @@ uInt exp2(const uInt &N)
         1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384,
         32768, 65536, 131072, 262144, 524288, 1048576, 2097152, 4194304,
         8388608, 16777216, 33554432, 67108864, 134217728, 268435456, 536'870'912};
-    if (N < 30)
-        return uInt(exp_2[uint32_t(N)]);
+    auto n = static_cast<size_t>(N);
+    if (n < 30)
+        return uInt(exp_2[n]);
     uInt expo = uInt(exp_2[29]) * 2;
-    unsigned power = 30;
-    for (; power * 2 <= N; power *= 2)
+    size_t power = 30;
+    for (; power * 2 <= n; power *= 2)
         expo *= expo;
-    for (; power + 29 <= N; power += 29)
+    for (; power + 29 <= n; power += 29)
         expo *= exp_2[29];
-    return power == N ? expo : expo * exp_2[uint32_t(N) - power];
-}
-
-uInt factorial(const uInt &N)
-{
-    static const double LOG10_[] = {
-        0, 0, .30103, .47712, .60206, .69897, .77815, .84510, .90309, .95424};
-    uInt result = 1;
-    for (size_t i = static_cast<size_t>(N); i > 1; --i)
-        result *= i;
-    return result;
+    return power == n ? expo : expo * exp_2[n - power];
 }
 
 uInt fibonacci(const uInt &N, const bool &startFrom0)
@@ -82,7 +73,7 @@ uInt combination(const uInt &N, const uInt &k)
         return combination(N, N - k);
     uInt Ank = permutation(N, k);
     if (k <= 12)
-        return Ank / factorial(uint32_t(k));
+        return Ank / factorial(k);
     for (unsigned i = uint32_t(k); i > 12; --i)
         Ank /= i;
     return Ank / 479001600; // 12!

@@ -1,5 +1,6 @@
 #include "bigMath.h"
 #include <time.h>
+#include <fstream>
 using namespace std;
 
 int main()
@@ -60,13 +61,32 @@ int main()
 
 	for (unsigned i = 1; i <= 100; ++i)
 		cout << i << ": " << factorial(i).length() / 9 << endl;
+
+	static const double LOG10_[] = {
+		0, .30103, .477121, .60206, .69897, .778151, .845098, .90309, .954243};
+	static const double LG_2PI = .79817986835811505;
+	static const uint32_t EXP10_[] = {
+		1, 10, 100, 1'000, 10'000, 100'000, 1'000'000, 10'000'000, 100'000'000, 1'000'000'000};
+
+	for (size_t i = 10000; i <= 50000; i += 10000)
+	{
+		clock_t tic = clock();
+		cout << factorial(i).sciNote() << endl
+			 << (double)(clock() - tic) / CLOCKS_PER_SEC << "s" << endl;
+	}
+
+	ofstream out;
+	out.open("1000!.txt");
+	out << "1000! = " << endl
+		<< factorial(1000).toString() << endl;
 	 */
 
-	cout << uInt("5424").toString(2) << endl;
+	cout << factorial(1000) << endl;
 
 	/*
 	for (unsigned i = 0; i < 100; i += 1)
 		cout << i << " <<:\t" << (c << i) << endl;
 	*/
+
 	return 0;
 }

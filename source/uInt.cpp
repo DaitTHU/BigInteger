@@ -290,7 +290,20 @@ istream &operator>>(istream &is, uInt &A)
     return is;
 }
 
-uInt uInt::operator~()
+/** @return this! */
+uInt uInt::operator!() const
+{
+    static const double LOG10_[] = {
+        0, .30103, .477121, .60206, .69897, .778151, .845098, .90309, .954243};
+    static const double LG_2PI = .79817986835811505;
+    
+    uInt result = 1;
+    for (size_t i = static_cast<size_t>(*this); i > 1; --i)
+        result *= i;
+    return result;
+}
+
+uInt uInt::operator~() const
 {
     if (*this < 2)
         return *this;
@@ -384,7 +397,7 @@ pair<uInt, uInt> uInt::divmod(const uInt &A) const
     return pair<uInt, uInt>(minQ, *this - QA);
 }
 
-uInt uInt::coarseDiv(const uInt &A, const std::size_t exactDigit) const
+uInt uInt::coarseDiv(const uInt &A, const std::size_t &_exactDigit) const
 {
     return 0;
 }
@@ -407,15 +420,15 @@ pair<uInt, uint64_t> uInt::approxExp2() const
 
 uInt exp10(const uInt &N)
 {
-    size_t n = static_cast<size_t>(N);
+    auto n = static_cast<size_t>(N);
     vector<uint32_t> expo(n / uInt::LENL_ + 1, 0);
     expo.back() = EXP10_[n % uInt::LENL_];
     return uInt(move(expo));
 }
 
-string uInt::toString(const unsigned &base, const bool &suffix) const
+string uInt::toString(const unsigned &_base, const bool &_suffix) const
 {
-    if (base == 10)
+    if (_base == 10)
     {
         string str = to_string(num_.back()), subNum;
         for (auto part = num_.rbegin() + 1; part != num_.rend(); ++part)
@@ -423,18 +436,18 @@ string uInt::toString(const unsigned &base, const bool &suffix) const
             subNum = to_string(*part);
             str += string(LEN_ - subNum.length(), '0') + subNum;
         }
-        if (suffix)
+        if (_suffix)
             str += "(10)";
         return str;
     }
-    assert(base <= 37);
+    assert(_base <= 37);
     uInt thisCopy = *this;
-    string str(1, ALPHABET[thisCopy.div_(base)]);
+    string str(1, ALPHABET[thisCopy.div_(_base)]);
     while (bool(thisCopy))
-        str += ALPHABET[thisCopy.div_(base)];
+        str += ALPHABET[thisCopy.div_(_base)];
     reverse(str.begin(), str.end());
-    if (suffix)
-        str += '(' + to_string(base) + ')';
+    if (_suffix)
+        str += '(' + to_string(_base) + ')';
     return str;
 }
 
@@ -538,8 +551,9 @@ uint32_t uInt::div_(const uint32_t &_divident)
     }
     if (*this < _divident)
     {
+        auto divisor = static_cast<uint32_t>(*this);
         *this = 0;
-        return _divident;
+        return divisor;
     }
     uint32_t remainder = 0;
     for (auto part = num_.rbegin(); part != num_.rend(); ++part)

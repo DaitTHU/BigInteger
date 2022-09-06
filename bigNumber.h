@@ -44,7 +44,8 @@ public:
 	// unary arithmetic
 	uInt &operator+() { return *this; };
 	uInt operator-() = delete; // sorry, can't return Int.
-	uInt operator~();
+	uInt operator!() const;
+	uInt operator~() const;
 	template <typename T>
 	explicit operator T() const { return static_cast<T>(num_[0]); }
 	explicit operator uint64_t() const;
@@ -101,7 +102,7 @@ public:
 	// others
 	bool between(const uInt &A, const uInt &B, const bool &includeA = true, const bool &includeB = false) const;
 	std::pair<uInt, uInt> divmod(const uInt &A) const;
-	uInt coarseDiv(const uInt &A, const std::size_t exactDigit = LEN_) const;
+	uInt coarseDiv(const uInt &A, const std::size_t &_exactDigit = LEN_) const;
 	std::pair<uInt, uint64_t> approxExp2() const;
 	friend uInt exp10(const uInt &N);
 	std::string toString(const unsigned &_base = 10, const bool &_suffix = false) const;

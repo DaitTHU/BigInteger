@@ -11,7 +11,7 @@ inline uInt exp2fit(const uInt &A) { return A.approxExp2().first; }
 /** @return largest n that 2^n <= A */
 inline uInt log2(const uInt &A) { return A.approxExp2().second; }
 
-uInt sqrt(const uInt &A);
+inline uInt sqrt(const uInt &A) { return ~A; }
 
 // Real sqrt(const Real &A);
 
@@ -21,8 +21,7 @@ uInt exgcd(const uInt &A, const uInt &B);
 
 uInt lcm(const uInt &A, const uInt &B);
 
-/** @return n! */
-uInt factorial(const uInt &N);
+inline uInt factorial(const uInt &N) { return !N; }
 
 /** @brief calculate the nth fibonacci number: \n
  * f(1) = f(2) = 1, f(n) = f(n-1) + f(n-2). */

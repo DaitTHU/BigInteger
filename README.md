@@ -10,9 +10,9 @@ so it absolutely exceeds the limit of `int`, even `unsigned long long`, which is
 
 In `bigNumber.h`, I construct couples of classes: `uInt`, `Int`, `Frac`, `Real`, `Complex`, `Inf` and `Poly` and overload operators to fit the custom operating-habits.
 
-### 1. `uInt` class
+### `uInt` class
 
-You can create a `uInt` object by `int` and `string`:
+1. **Construction & Assignment:** You can create a `uInt` object from `uint32_t` or `string`:
 
 ```cpp
 uInt a = 65472;
@@ -23,13 +23,12 @@ std::cout << "You can also input the number you want: ";
 std::cin >> d;
 ```
 
-⚠️ **WARNING:** ⚠️ If you directly assign `uInt` with a negative number, it'll convert to `unsigned long long` before taken into the constructor.
+⚠️ **WARNING:** Directly assign `uInt` with a <u>negative</u> number will convert it to `uint64_t` before taken into the constructor.
 
 ```cpp
 uInt largeNegative = -100; // 18446744073709551516
 ```
-
-For `string`-constructor, `strings` can only consist of numbers and leading signs (which will be omitted).
+* `string` can only consist of numbers and leading signs (which will be omitted).
 
 ```cpp
 uInt positiveInt = std::string("-2718"); // 2718
@@ -39,20 +38,24 @@ uInt hilariousDemo("-+-+-+-1414213562"); // 1414213562
 // uInt errorDemo2("0xABCDEF")           // only base-10 readable
 ```
 
-`uInt`s are comparable. If you perfer `a < x < b` like Python, you can use `uInt::between(A, B, includeA = true, includeB = false)`.
+2. **Comparison:** `uInt`s are comparable (`<, >, ==,...`). Moreover, If you perfer `a < x < b` like Python, you can use `uInt::between(A, B, includeA = true, includeB = false)`.
 
 ```cpp
 std::cout << "d > 10000? " << (d > 10000) << std::endl;
 std::cout << "a <= d < b? " << d.between(a, b) << std::endl;
 ```
 
-calculate is trivial. Moreover, `^`, `>>`, `<<`, `~` are redisigned to meet special calculation purposes. If you don't like them, you could `Bin`.
-
+3. **Calculation:** You can do the calculation between `uInt`s or between `uInt` and `uint32_t`.
 ```cpp
 uInt e = a + b; // 1234567891011121314151617247392
-e -= 100;
+a -= 65430;
 uInt f = c * d;
 b /= uInt("1145141919810"); // 1078091605637804892
+```
+
+* `^, >>, <<, ~, !` are redesigned for special purposes. If you'd like the original bit-op, you could use `Bin`.
+
+```cpp
 // ^: exponent, e.g. 2^4 = 16.
 uInt g = b ^ 3;
 std::cout << g << std::endl; 
@@ -63,64 +66,82 @@ std::cout << (g >> 43) << std::endl;
 // ~: square root, for ~g is a bit similar to √g
 std::cout << ~g << std::endl;
 >>> 1,119395345,477722032,435959354
+// !: factorial
+std::cout << !a << std::endl; // 42!
+1405006,117752879,898543142,606244511,569936384,000000000
 ```
 
-⚠️ **WARNING 1:** ⚠️ Directly operating `uInt` with `string` is strongly discouraged. It's **NOT** JavaScript.
+⚠️ **WARNING 1:** Directly operating `uInt` with `string` is strongly discouraged. It's **NOT** JavaScript.
 
 ```cpp
 std::cout << f + "314159265358" << std::endl;       // this is evil.
 std::cout << f + uInt("314159265358") << std::endl; // use type-conversion at least
 ```
 
-⚠️ **WARNING 2:** ⚠️ The `^` operator has lower precedence than `+-`, even `==`. What's worse, unlike math, `^` combines left. So please use `()` when doing mixed operations involving power `^`.
-
-Also, to make it a bit elegant, you could use `g(n, 0)` to calculate `g^n` while `g(n, 1)` for the nth root of `g`, which is of the first precedence.
+⚠️ **WARNING 2:** The `^` operator has lower precedence than `+-`, even `==`. What's worse, unlike math, `^` combines left. So please use `()` when doing mixed operations involving power `^`.
 
 ```cpp
 f = 2 + uInt(3) ^ 4;   // = 5 ^ 4 = 625
 f = 2 + (uInt(3) ^ 4); // = 2 + 81 = 83
 f = 3 ^ uInt(3) ^ 3;   // = 27 ^ 3 = 19683
-uInt h = g(40, 1);     // = 22
 ```
 
-and many related functions are provided
+As compensation, `g(n, 0)` is prvided to calculate `g^n` while `g(n, 1)` for the nth root of `g`, which is of the first precedence.
 
 ```cpp
-// uInt::toString(base = 10, suffix = false) returns the number in `string` format.
+uInt h = g(40, 1);     // 40th root of g = 22
+```
+
+4. **Member Function:** 
+
+```cpp
+// uInt::toString(base = 10, suffix = false)
+// returns the number in `string` format.
 std::cout << g.toString(16, true) << std::endl; 
 >>> D1518D2D6F87B20C2805158F9BCEB1475AF4AF9D271C0(16)
 
-// uInt::sciNote(deciLength = 9) returns the number in scientific notation format.
+// uInt::length(base = 10)
+// returns the number of digit of `A`.
+std::cout << g.length() << std::endl;
+>>> 55
+
+// uInt::sciNote(deciLength = 9)
+// returns the number in scientific notation format.
 std::cout << g.sciNote() << std::endl; 
 >>> 1.253045939 x 10^54
 
-// uInt::length(base = 10) returns the number of digit of `A`.
-std::cout << g.length() << std::endl;
->>> 55
+// uInt::setDelimiter(delimiter = ',', interval = 9)
+// set the delimiter notation and the interval between.
+uInt::setDelimiter(' ', 3);
+std::cout << b << std::endl; 
+>>> 1 078 091 605 637 804 892
+
+// uInt::divmod(A)
+// returns (quotient, remainder) pair
 ```
-by the way, `sciNote(-1)` shows all the decimal digits. (cause `unsigned(-1) = 4294967295`)
+* by the way, `sciNote(-1)` shows all the decimal digits. (because `size_t(-1)` is the largest `size_t`)
 
 more functions to be continued...
 
-### 2. `Int` class (TODO)
+### `Int` class (TODO)
 
 almost same as `uInt` class, adding a sign.
 
-### 3. `Frac` class (TODO)
+### `Frac` class (TODO)
 
 Fraction, consisting of `Int` numerator and `uInt` denominator, also, you can create a `Frac` object by `int`, `double`, `string`...
 
 (quiet like `Fraction package` in `Python`, lol...)
 
-### 4. `Real` class (TODO)
+### `Real` class (TODO)
 
 consisting of `Int` as the integer part and `vector<int>` as the decimal part.
 
-### 5. `Complex` class (TODO)
+### `Complex` class (TODO)
 
 consisting of two `Real` as the real part and imaginary part.
 
-### 6. `Inf` class
+### `Inf` class
 
 Infinity, consisiting of sign and order. Numbers could compare or operator with `Inf`. Const `INF` is provided.
 
@@ -129,7 +150,7 @@ b < INF; // false
 c + INF; // INF
 ```
 
-### 7. `Poly` class (TODO)
+### `Poly` class (TODO)
 
 Polynomial, consisting of multiple `Real` coefficients.
 
@@ -160,8 +181,8 @@ With these `.h`s you can easily see how big `1000!` is:
 
 ```cpp
 #include "bigMath.h"
-std::cout << factorial(1000).sciNote(50) << std::endl;
->>> 4.02387260077093773543702433923003985719374864210714 x 10^2567
+std::cout << factorial(1000) << std::endl;
+>>> 402,387260077,093773543,702433923,... // see 1000!.txt
 ```
 
 ## advantages
