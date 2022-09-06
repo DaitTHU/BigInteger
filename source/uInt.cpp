@@ -6,10 +6,8 @@
 #include <iomanip>   // setw, setfill
 using namespace std;
 
-#define LG2_32_9 241726409 / 225843117 // 32 * lg2 / 9
-#define LOG2_10 1079882313 / 325076968 // DO NOT TOUCH
-
-static const uint32_t LOG2_[] = { 0, 0, 1, 1, 2, 2, 2, 2, 3, 3 };
+static const float LOG2_[] = {
+    0, 0, 1, 1.58496, 2, 2.32193, 2.58496, 2.80735, 3, 3.16993, 3.32193 };
 static const uint32_t EXP10_[] = {
     1, 10, 100, 1'000, 10'000, 100'000, 1'000'000, 10'000'000, 100'000'000, 1'000'000'000 };
 static const char ALPHABET[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -141,23 +139,18 @@ uInt& uInt::operator*=(const uInt& A)
     return *this;
 }
 
-uInt& uInt::operator/=(const uint32_t& n)
-{
-    this->div_(n);
-    return *this;
-}
-
 uInt& uInt::operator%=(const uint32_t& n)
 {
     if (n >= MAX_)
         return *this = this->divmod(uInt(n)).second;
     if (*this < n) {
-        num_.assign(n, 1);
+        num_.assign(1, n);
         return *this;
     }
     uint32_t remainder = num_.back() % n;
     for (auto part = num_.rbegin() + 1; part != num_.rend(); ++part)
-        remainder = (MAXL_ * static_cast<uint64_t>(remainder) + static_cast<uint64_t>(*part)) % n;
+        remainder = (MAXL_ * static_cast<uint64_t>(remainder)
+            + static_cast<uint64_t>(*part)) % n;
     num_.assign(1, remainder);
     return *this;
 }
@@ -270,9 +263,9 @@ ostream& operator<<(ostream& os, const uInt& A)
 
 istream& operator>>(istream& is, uInt& A)
 {
-    string str;
-    is >> str;
-    A = uInt(str);
+    string strNum;
+    is >> strNum;
+    A = uInt(strNum);
     return is;
 }
 
@@ -356,26 +349,25 @@ pair<uInt, uInt> uInt::divmod(const uInt& A) const
     }
     if (*this < A)
         return pair<uInt, uInt>(0, *this);
-    // attempt div, result Quot + 1 >= real Q
+    // attempt div, result Quot >= real Quot 
     size_t exceedLen = A.length() - LENL_;
     uInt maxQ = (*this >> exceedLen) / (A >> exceedLen)[0];
     uInt QA = maxQ * A;
     if (*this >= QA)
         return pair<uInt, uInt>(maxQ, *this - QA);
-    // real Q > maxQ * 100'000'000 / 100'000'001
-    uInt minQ = (maxQ << 8) / 100000001;
-    while (minQ + 1 < maxQ) { // *this < maxQ * A
+    // realQ > maxQ * 100'000'000 / 100'000'001
+    uInt minQ = (maxQ << 8) / 100000001, midQA;
+    while (minQ + 1 < maxQ) {
         uInt midQ = (maxQ + minQ) / 2;
-        uInt midQA = midQ * A;
-        if (*this > midQA) {
+        midQA = midQ * A;
+        if (*this > midQA)
             minQ = move(midQ);
-            QA = move(midQA);
-        } else if (*this < midQA)
+        else if (*this < midQA) // *this < maxQ * A
             maxQ = move(midQ);
         else
             return pair<uInt, uInt>(midQ, 0);
     }
-    return pair<uInt, uInt>(minQ, *this - QA);
+    return pair<uInt, uInt>(minQ, *this - minQ * A);
 }
 
 uInt uInt::coarseDiv(const uInt& A, const std::size_t& _exactDigit) const
@@ -388,10 +380,11 @@ pair<uInt, uint64_t> uInt::approxExp2() const
 {
     if (*this == 0)
         return pair<uInt, uint32_t>(0, 0);
-    size_t len = LENL_ * (size_() - 1), i = 1;
-    for (; EXP10_[i] <= num_.back(); ++i, ++len);
-    uint32_t firstNum = num_.back() / EXP10_[i - 1];
-    uint32_t power = LOG2_[firstNum] + len * LOG2_10; // error: -1~0
+    size_t i = 0;
+    for (;EXP10_[i + 1] <= num_.back();++i);
+    uint32_t firstDigit = num_.back() / EXP10_[i];
+    // use log, error: -1~0
+    uint32_t power = LOG2_[firstDigit] + (LENL_ * (size_() - 1) + i) * LOG2_[10];
     uInt expo = exp2(power), expo2 = expo * 2;
     if (*this < expo2)
         return pair<uInt, uint32_t>(expo, power);
@@ -406,42 +399,66 @@ uInt exp10(const uInt& N)
     return uInt(move(expo));
 }
 
+size_t uInt::length(const unsigned& _base) const
+{
+    size_t i = 1;
+    switch (_base) {
+    case 10:
+        for (; EXP10_[i] <= num_.back(); ++i);
+        return LENL_ * (size_() - 1) + i;
+    case 2:
+        return 1 + approxExp2().second;
+    case 4:
+        return 1 + approxExp2().second / 2;
+    case 8:
+        return 1 + approxExp2().second / 3;
+    case 16:
+        return 1 + approxExp2().second / 4;
+    default:
+        uInt thisCopy = *this / _base;
+        for (; bool(thisCopy); ++i)
+            thisCopy /= _base;
+        return i;
+    }
+}
+
 string uInt::toString(const unsigned& _base, const bool& _suffix) const
 {
     if (_base == 10) {
-        string str = to_string(num_.back()), subNum;
+        string strNum = to_string(num_.back()), subNum;
         for (auto part = num_.rbegin() + 1; part != num_.rend(); ++part) {
             subNum = to_string(*part);
-            str += string(LEN_ - subNum.length(), '0') + subNum;
+            strNum += string(LEN_ - subNum.length(), '0') + subNum;
         }
         if (_suffix)
-            str += "(10)";
-        return str;
+            strNum += "(10)";
+        return strNum;
     }
-    assert(_base <= 37);
+    if (_base > 36)
+        cerr << "ERROR: out of Alphabet limit.";
     uInt thisCopy = *this;
-    string str(1, ALPHABET[thisCopy.div_(_base)]);
+    string strNum(1, ALPHABET[thisCopy.div_(_base)]);
     while (bool(thisCopy))
-        str += ALPHABET[thisCopy.div_(_base)];
-    reverse(str.begin(), str.end());
+        strNum += ALPHABET[thisCopy.div_(_base)];
+    reverse(strNum.begin(), strNum.end());
     if (_suffix)
-        str += '(' + to_string(_base) + ')';
-    return str;
+        strNum += '(' + to_string(_base) + ')';
+    return strNum;
 }
 
 string uInt::sciNote(const size_t& _deciLength) const
 {
-    string str = to_string(num_.back()), subDeci;
+    string strNote = to_string(num_.back()), subDeci;
     size_t power = length() - 1;
     size_t deciLength = min(_deciLength, power);
     if (deciLength == 0)
-        return str.substr(0, 1) + " x 10^" + to_string(power);
-    str.insert(1, 1, '.');
-    for (auto part = num_.rbegin() + 1; str.length() < 2 + deciLength; ++part) {
+        return strNote.substr(0, 1) + " x 10^" + to_string(power);
+    strNote.insert(1, 1, '.');
+    for (auto part = num_.rbegin() + 1; strNote.length() < 2 + deciLength; ++part) {
         subDeci = to_string(*part);
-        str += string(LEN_ - subDeci.length(), '0') + subDeci;
+        strNote += string(LEN_ - subDeci.length(), '0') + subDeci;
     }
-    return str.substr(0, 2 + deciLength) + " x 10^" + to_string(power);
+    return strNote.substr(0, 2 + deciLength) + " x 10^" + to_string(power);
 }
 
 uInt uInt::subInt(const size_t& _beginDigit, const size_t& _endDigit) const
@@ -450,30 +467,13 @@ uInt uInt::subInt(const size_t& _beginDigit, const size_t& _endDigit) const
         return static_cast<uInt>(0);
     size_t beginDigit = min(length(), _beginDigit);
     size_t endDigit = min(length() + 1, _endDigit);
-    uInt subN(vector<uint32_t>(num_.begin() + beginDigit / LEN_, num_.begin() + 1 + endDigit / LEN_));
+    uInt subN(vector<uint32_t>(num_.begin() + beginDigit / LEN_,
+        num_.begin() + 1 + endDigit / LEN_));
     subN.num_.back() %= EXP10_[endDigit % LENL_];
     subN >>= beginDigit % LEN_;
     while (subN.num_.back() == 0 && subN.size_() > 1)
         subN.num_.pop_back();
     return subN;
-}
-
-size_t uInt::length(const unsigned& base) const
-{
-    if (base == 10) {
-        size_t len = LENL_ * (size_() - 1);
-        for (unsigned i = 1; EXP10_[i] <= num_.back(); ++i)
-            ++len;
-        return len + 1;
-    } else if (base == 2)
-        return approxExp2().second;
-    else if (base == 4)
-        return approxExp2().second / 2;
-    else if (base == 8)
-        return approxExp2().second / 3;
-    else if (base == 16)
-        return approxExp2().second / 4;
-    return toString(base).length(); // shit
 }
 
 // private function
@@ -493,7 +493,7 @@ void uInt::normalize_()
 /** @brief a + b + inCarry = c & outCarry. */
 inline uint32_t uInt::adder_(const uint32_t& a, const uint32_t& b, uint32_t& carry) const
 {
-    uint32_t c = a + b + carry; // max(c) < 3 * MAX_ < 0xFFFFFFFF, uint32_t is OK.
+    uint32_t c = a + b + carry; // max < 0xFFFFFFFF
     carry = c / MAX_;
     return c % MAX_;
 }

@@ -34,7 +34,7 @@ public:
 	uInt& operator-=(const uInt& A);
 	uInt& operator*=(const uint32_t& n);
 	uInt& operator*=(const uInt& A);
-	uInt& operator/=(const uint32_t& n);
+	uInt& operator/=(const uint32_t& n) { this->div_(n); return *this; }
 	uInt& operator%=(const uint32_t& n);
 	uInt& operator^=(const uInt& A);
 	uInt& operator>>=(const std::size_t& n);
@@ -107,10 +107,10 @@ public:
 	uInt coarseDiv(const uInt& A, const std::size_t& _exactDigit = LEN_) const;
 	std::pair<uInt, uint64_t> approxExp2() const;
 	friend uInt exp10(const uInt& N);
+	std::size_t length(const unsigned& _base = 10) const;
 	std::string toString(const unsigned& _base = 10, const bool& _suffix = false) const;
 	std::string sciNote(const std::size_t& _deciLength = LEN_) const; // whether for ostream, or string?
 	uInt subInt(const std::size_t& _beginDigit = 0, const std::size_t& _endDigit = 0xFFFFFFFFFFFFFFFF) const;
-	std::size_t length(const unsigned& _base = 10) const;
 
 private:
 	static constexpr size_t LENL_ = static_cast<std::size_t>(LEN_); // size_t
@@ -271,16 +271,8 @@ public:
 	Real(Real&& A) = default;
 	~Real() = default;
 	// assignment
-	Real& operator=(const Real& A)
-	{
-		num_ = A.num_, p = A.p, dec = A.dec;
-		return *this;
-	}
-	Real& operator=(Real&& A)
-	{
-		num_ = move(A.num_), p = A.p, dec = move(A.dec);
-		return *this;
-	}
+	Real& operator=(const Real& A) { num_ = A.num_, p = A.p, dec = A.dec; return *this; }
+	Real& operator=(Real&& A) { num_ = move(A.num_), p = A.p, dec = move(A.dec); return *this; }
 	// relational
 	bool operator<(const Real& A) const;
 	bool operator>(const Real& A) const { return A < *this; }

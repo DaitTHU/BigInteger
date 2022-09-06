@@ -79,9 +79,17 @@ int main()
 	out.open("1000!.txt");
 	out << "1000! = " << endl
 		<< factorial(1000).toString() << endl;
+
+	 // clock_t tic = clock();
+	for (unsigned i = 100; i <= 1000; i += 10)
+		if (!fibonacci(i).approxExp2().first.between(fibonacci(i).approxExp2().first, fibonacci(i).approxExp2().first * 2))
+			cout << fibonacci(i).approxExp2().first << " " << fibonacci(i).approxExp2().second << endl
+			<< fibonacci(i).approxExp2().first << endl
+			<< fibonacci(i).approxExp2().first * 2 << endl << endl;
+	// << (double)(clock() - tic) / CLOCKS_PER_SEC << "s" << endl;
 	 */
 
-	cout << fibonacci(300).subInt(50, 43) << endl;
+	cout << fibonacci(100).toString().length() << endl << fibonacci(100).length() << endl;
 
 	/*
 	for (unsigned i = 0; i < 100; i += 1)
