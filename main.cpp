@@ -81,7 +81,7 @@ int main()
 		<< factorial(1000).toString() << endl;
 	 */
 
-	cout << factorial(1000) << endl;
+	cout << fibonacci(300).subInt(50, 43) << endl;
 
 	/*
 	for (unsigned i = 0; i < 100; i += 1)
