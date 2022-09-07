@@ -156,19 +156,19 @@ Polynomial, consisting of multiple `Real` coefficients.
 
 ## `bigMath.h`
 
-this `.h` has some math functions. 
+this `.h` has some math functions. You have to use namespcae math.
 
 ```cpp
 // exp2(A) returns 2^A, much faster than (2 ^ A)
-std::cout << exp2(114514).sciNote() << std::endl;
+std::cout << math::exp2(114514).sciNote() << std::endl;
 >>> 1.409040464 x 10^34472
 
 // log2(A) returns the max `n` that `2^n <= A`.
-std::cout << log2(g) << std::endl;
+std::cout << math::log2(g) << std::endl;
 >>> 179
 
 // exp2fit(A) returns the max `2^n` that `<= A`.
-std::cout << exp2fit(g) << std::endl;
+std::cout << math::exp2fit(g) << std::endl;
 >>> 766247770,432944429,179173513,575154591,809369561,091801088
 ```
 
@@ -181,7 +181,7 @@ With these `.h`s you can easily see how big `1000!` is:
 
 ```cpp
 #include "bigMath.h"
-std::cout << factorial(1000) << std::endl;
+std::cout << math::factorial(1000) << std::endl;
 >>> 402,387260077,093773543,702433923,... // see 1000!.txt
 ```
 

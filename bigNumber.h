@@ -45,7 +45,7 @@ public:
 	uInt& operator+() { return *this; };
 	uInt operator-() = delete; // sorry, can't return Int.
 	uInt operator!() const;
-	uInt operator~() const;
+	uInt operator~() const { return operator()(2, 1); }
 	template <typename T>
 	explicit operator T() const { return static_cast<T>(num_[0]); }
 	explicit operator uint64_t() const;
@@ -75,7 +75,7 @@ public:
 	uInt operator<<(const uInt& A) const { return uInt(*this) <<= A; }
 	uInt operator&(const uInt& A) const = delete;
 	uInt operator|(const uInt& A) const = delete;
-	uInt operator()(const uInt& N, const bool& nthRoot) const;
+	uInt operator()(const uInt& N, const bool& NthRoot) const;
 	// right relational
 	friend bool operator<(const uint32_t n, const uInt& A) { return A > n; }
 	friend bool operator>(const uint32_t n, const uInt& A) { return A < n; }
@@ -209,16 +209,8 @@ public:
 	Frac(Frac&& A) = default;
 	~Frac() = default;
 	// assignment
-	Frac& operator=(const Frac& A)
-	{
-		nume = A.nume, deno = A.deno;
-		return *this;
-	}
-	Frac& operator=(Frac&& A)
-	{
-		nume = std::move(A.nume), deno = std::move(A.deno);
-		return *this;
-	}
+	Frac& operator=(const Frac& A) { nume = A.nume, deno = A.deno; return *this; }
+	Frac& operator=(Frac&& A) { nume = std::move(A.nume), deno = std::move(A.deno); return *this; }
 	// relational
 	bool operator<(const Frac& A) const { return nume * A.deno < A.nume* deno; };
 	bool operator>(const Frac& A) const { return A < *this; }
@@ -259,20 +251,20 @@ public:
 class Real : public Int
 {
 protected:
-	std::vector<uint32_t> dec{}; // decimal
+	std::size_t dot = 0;
 
 public:
 	Real() {}
 	Real(const int32_t& _r) : Int(_r) {}
 	Real(const double& _r) {}
 	Real(const std::string& _r);
-	Real(const Int& A, std::vector<uint32_t> _d = {}) : Int(A), dec(_d) {}
+	// Real(const Int& A) : Int(A), dec(_d) {}
 	Real(const Real& A) = default;
 	Real(Real&& A) = default;
 	~Real() = default;
 	// assignment
-	Real& operator=(const Real& A) { num_ = A.num_, p = A.p, dec = A.dec; return *this; }
-	Real& operator=(Real&& A) { num_ = move(A.num_), p = A.p, dec = move(A.dec); return *this; }
+	Real& operator=(const Real& A) { num_ = A.num_, p = A.p, dot = A.dot; return *this; }
+	Real& operator=(Real&& A) { num_ = move(A.num_), p = A.p, dot = A.dot; return *this; }
 	// relational
 	bool operator<(const Real& A) const;
 	bool operator>(const Real& A) const { return A < *this; }

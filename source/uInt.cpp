@@ -168,7 +168,7 @@ uInt& uInt::operator^=(const uInt& A)
         return *this *= *this;
     }
     uInt base = *this;
-    uInt power = 1, halfA = A / 2;
+    size_t power = 1, halfA = static_cast<size_t>(A) / 2;
     for (; power <= halfA; power *= 2)
         *this *= *this; // quick
     for (; power < A; ++power)
@@ -282,33 +282,21 @@ uInt uInt::operator!() const
     return result;
 }
 
-uInt uInt::operator~() const
+/** @return NthRoot ? NthRoot(this) : this ^ N */
+uInt uInt::operator()(const uInt& N, const bool& NthRoot) const
 {
     if (*this < 2)
         return *this;
-    uInt root(vector<uint32_t>(size_() / 2 + 2, 0));
-    root.num_.back() = 1;
-    do // Newton
-        root = (root + *this / root) / 2;
-    while (root * root > *this);
-    return root;
-}
-
-/** @return nthRoot ? this ^ N : NthRoot(this) */
-uInt uInt::operator()(const uInt& N, const bool& nthRoot = false) const
-{
-    if (*this < 2)
-        return *this;
-    if (!nthRoot)
+    if (!NthRoot)
         return *this ^ N;
     size_t n = static_cast<size_t>(N);
     uInt root(vector<uint32_t>(size_() / n + 2, 0));
     root.num_.back() = 1;
-    uInt rootn = root ^ (n - 1);
+    uInt rootInv;
     do {
-        root = ((n - 1) * root + *this / rootn) / n;
-        rootn = root ^ (n - 1);
-    } while (root * rootn > *this);
+        rootInv = *this / (root ^ (n - 1));
+        root = ((n - 1) * root + rootInv) / n;
+    } while (root > rootInv);
     return root;
 }
 
@@ -385,7 +373,7 @@ pair<uInt, uint64_t> uInt::approxExp2() const
     uint32_t firstDigit = num_.back() / EXP10_[i];
     // use log, error: -1~0
     uint32_t power = LOG2_[firstDigit] + (LENL_ * (size_() - 1) + i) * LOG2_[10];
-    uInt expo = exp2(power), expo2 = expo * 2;
+    uInt expo = math::exp2(power), expo2 = expo * 2;
     if (*this < expo2)
         return pair<uInt, uint32_t>(expo, power);
     return pair<uInt, uint32_t>(expo2, power + 1);

@@ -2,6 +2,7 @@
 #include <time.h>
 #include <fstream>
 using namespace std;
+using namespace math;
 
 int main()
 {
@@ -87,9 +88,15 @@ int main()
 			<< fibonacci(i).approxExp2().first << endl
 			<< fibonacci(i).approxExp2().first * 2 << endl << endl;
 	// << (double)(clock() - tic) / CLOCKS_PER_SEC << "s" << endl;
-	 */
 
-	cout << fibonacci(100).toString().length() << endl << fibonacci(100).length() << endl;
+	for (size_t i = 1; i <= 100; i += 1) {
+		uInt c = factorial(i);
+		uInt d = ~c; //
+		cout << c.between(d ^ 2, (d + 1) ^ 2) << " " << flush;
+	}
+	 */
+	auto e = exgcd(fibonacci(100), fibonacci(201));
+	cout << get<0>(e) << endl << get<1>(e) << endl << get<2>(e) << endl;
 
 	/*
 	for (unsigned i = 0; i < 100; i += 1)
