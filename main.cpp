@@ -2,7 +2,6 @@
 #include <time.h>
 #include <fstream>
 using namespace std;
-using namespace math;
 
 int main()
 {
@@ -93,10 +92,16 @@ int main()
 		uInt c = factorial(i);
 		uInt d = ~c; //
 		cout << c.between(d ^ 2, (d + 1) ^ 2) << " " << flush;
-	}
+	}999999999999999
+
+	uInt c("12345678910121314151617181920212223");
+	c <<= 100;
+	cout << c << endl << (c << 100) << endl;
 	 */
-	auto e = exgcd(fibonacci(100), fibonacci(201));
-	cout << get<0>(e) << endl << get<1>(e) << endl << get<2>(e) << endl;
+
+	for (size_t i = 0; i <= 10;++i)
+		if (i & 1 ^ 1)
+			cout << i << " ";
 
 	/*
 	for (unsigned i = 0; i < 100; i += 1)

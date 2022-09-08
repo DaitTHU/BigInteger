@@ -3,7 +3,7 @@
 #include "bigNumber.h"
 #include <tuple>
 
-namespace math {
+//namespace math {
     /** @return 2^A */
     uInt exp2(const uInt& N);
 
@@ -24,7 +24,7 @@ namespace math {
     /** @return Greatest Common Divisor, use Euclidean algorithm */
     inline uInt gcd(const uInt& A, const uInt& B) { return B == 0 ? A : gcd(B, A % B); }
 
-    std::tuple<Int, Int, uInt> exgcd(const uInt& A, const uInt& B);
+    std::tuple<uInt, uInt, uInt> exgcd(const uInt& A, const uInt& B);
 
     /** @return Least Common Multiple , use A * B = gcd(A, B) * lcm(A, B) */
     inline uInt lcm(const uInt& A, const uInt& B) { return A * B / gcd(A, B); }
@@ -42,6 +42,6 @@ namespace math {
     uInt permutation(const uInt& n, const uInt& k);
 
     uInt combination(const uInt& n, const uInt& k);
-} // namespace math
+//} // namespace math
 
 #endif

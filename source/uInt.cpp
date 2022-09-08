@@ -30,24 +30,27 @@ uInt::uInt(const string& n)
         *this = uInt(n.substr(1)); // omit sign
         return;
     }
-    bool isZero = true;
-    for (auto& _digit : n)
-        if (_digit < '0' || _digit > '9') {
+    size_t leadingZero = 0;
+    bool allZero = true;
+    for (auto& digit : n) {
+        if (digit < '0' || digit > '9') {
             cout << "WARNING: N/A string in constructor, set as 0." << endl;
             num_.push_back(0);
             return;
-        } else if (isZero && _digit != '0')
-            isZero = false;
-        if (isZero) {
-            num_.push_back(0);
-            return;
         }
-        int pos;
-        for (pos = n.length() - LEN_; pos > 0; pos -= LEN_)
-            num_.push_back(stoi(n.substr(pos, LEN_)));
-        num_.push_back(stoi(n.substr(0, LEN_ + pos))); // p <= 0
-        while (num_.back() == 0)
-            num_.pop_back();
+        if (allZero)
+            digit == '0' ? ++leadingZero : allZero = false;
+    }
+    if (allZero) {
+        num_.push_back(0);
+        return;
+    }
+    ssize_t pos = n.length() - leadingZero - LENL_;
+    for (; pos > 0; pos -= LEN_)
+        num_.push_back(stoi(n.substr(pos, LEN_)));
+    num_.push_back(stoi(n.substr(0, LEN_ + pos))); // p <= 0
+    while (num_.back() == 0)
+        num_.pop_back();
 }
 
 uInt::operator uint64_t() const
@@ -57,8 +60,8 @@ uInt::operator uint64_t() const
         return static_cast<uint64_t>(num_[0]);
     case 2:
         return MAXL_ * static_cast<uint64_t>(num_[1]) + static_cast<uint64_t>(num_[0]);
-    default:
-        return MAXL_ * MAXL_ * static_cast<uint64_t>(num_[2]) +
+    default: // 18,446744073,709551615
+        return MAXL_ * MAXL_ * static_cast<uint64_t>(num_[2] % 10) +
             MAXL_ * static_cast<uint64_t>(num_[1]) + static_cast<uint64_t>(num_[0]);
     }
 }
@@ -67,7 +70,7 @@ bool uInt::operator<(const uInt& A) const
 {
     if (size_() != A.size_())
         return size_() < A.size_();
-    for (int i = size_() - 1; i >= 0; --i)
+    for (ssize_t i = size_() - 1; i >= 0; --i)
         if (num_[i] != A[i])
             return num_[i] < A[i];
     return false;
@@ -81,7 +84,7 @@ uInt& uInt::operator+=(const uInt& A)
     size_t i = 0;
     for (; i < A.size_(); ++i)
         num_[i] = adder_(num_[i], A[i], carry);
-    for (; i < num_.size(); ++i)
+    for (; i < size_(); ++i)
         num_[i] = adder_(num_[i], 0, carry);
     if (carry > 0)
         num_.push_back(carry);
@@ -90,16 +93,21 @@ uInt& uInt::operator+=(const uInt& A)
 
 uInt& uInt::operator-=(const uInt& A)
 {
-    if (*this == A) // guarantee *this >= A for effi.
-        return *this = 0;
     bool carry = false;
-    for (size_t i = 0; i < A.size_(); ++i)
-        num_[i] = suber_(num_[i], A[i], carry);
-    for (size_t i = A.size_(); i < size_(); ++i)
-        num_[i] = suber_(num_[i], 0, carry);
+    size_t i = 0;
+    if (*this < A) { // this = abs(A - this)
+        num_.resize(A.size_(), 0);
+        for (; i < A.size_(); ++i)
+            num_[i] = suber_(A[i], num_[i], carry);
+    } else {
+        for (; i < A.size_(); ++i)
+            num_[i] = suber_(num_[i], A[i], carry);
+        for (; i < size_(); ++i)
+            num_[i] = suber_(num_[i], 0, carry);
+    }
     if (carry)
         --num_.back();
-    while (num_.back() == 0)
+    while (num_.back() == 0 && size_() > 1)
         num_.pop_back();
     return *this;
 }
@@ -107,19 +115,16 @@ uInt& uInt::operator-=(const uInt& A)
 uInt& uInt::operator*=(const uint32_t& n)
 {
     uint64_t carry = 0;
-    for (auto& part : num_) {
+    for (auto& part : num_) { // similar to muler_, but not same.
         uint64_t c = static_cast<uint64_t>(part) * static_cast<uint64_t>(n) + carry;
         carry = c / MAXL_;
         part = static_cast<uint32_t>(c % MAXL_);
     }
     if (carry == 0)
         return *this;
-    if (carry < MAXL_)
-        num_.push_back(static_cast<uint32_t>(carry));
-    else {
-        num_.push_back(static_cast<uint32_t>(carry % MAXL_));
+    num_.push_back(static_cast<uint32_t>(carry % MAXL_));
+    if (carry >= MAXL_)
         num_.push_back(static_cast<uint32_t>(carry / MAXL_));
-    }
     return *this;
 }
 
@@ -134,7 +139,7 @@ uInt& uInt::operator*=(const uInt& A)
             prod[i + size_()] += carry;
     }
     if (prod.back() == 0)
-        prod.pop_back(); // at most 1.
+        prod.pop_back(); // at most once.
     num_ = move(prod);
     return *this;
 }
@@ -147,17 +152,16 @@ uInt& uInt::operator%=(const uint32_t& n)
         num_.assign(1, n);
         return *this;
     }
-    uint32_t remainder = num_.back() % n;
+    uint64_t remainder = num_.back() % n;
     for (auto part = num_.rbegin() + 1; part != num_.rend(); ++part)
-        remainder = (MAXL_ * static_cast<uint64_t>(remainder)
-            + static_cast<uint64_t>(*part)) % n;
+        remainder = (MAXL_ * remainder + static_cast<uint64_t>(*part)) % n;
     num_.assign(1, remainder);
     return *this;
 }
 
 uInt& uInt::operator^=(const uInt& A)
 {
-    if (*this < 2)
+    if (*this < 2) // 0, 1
         return *this;
     switch (static_cast<size_t>(A)) {
     case 0:
@@ -206,7 +210,8 @@ uInt& uInt::operator<<=(const size_t& n)
         return *this;
     size_t sizeLen = n / LENL_;
     if (sizeLen > 0) {
-        num_.resize(size_() + sizeLen);
+        // num_.reserve(size_() + sizeLen);
+        num_.resize(size_() + sizeLen, 0);
         for (size_t i = size_(); i >= sizeLen; --i)
             num_[i] = num_[i - sizeLen];
         for (size_t i = 0; i < sizeLen; ++i)
@@ -358,9 +363,39 @@ pair<uInt, uInt> uInt::divmod(const uInt& A) const
     return pair<uInt, uInt>(minQ, *this - minQ * A);
 }
 
-uInt uInt::coarseDiv(const uInt& A, const std::size_t& _exactDigit) const
+uInt uInt::coarseDiv(const uInt& A, const size_t& _exactDigit) const
 {
-    return 0;
+    /** @todo */
+    if (A.size_() < 2) {
+        vector<uint32_t> coarseQ(1, 0);
+        uint32_t remainder = 0;
+        for (size_t i = size_(); i >= 0; ++i)
+            coarseQ[i] = diver_(num_[i], A[0], remainder);
+        while (coarseQ.back() == 0 && coarseQ.size() > 1) // at most once
+            coarseQ.pop_back();
+        return coarseQ;
+    }
+    if (*this < A)
+        return static_cast<uInt>(0);
+    // attempt div, result Quot >= real Quot 
+    size_t exceedLen = A.length() - LENL_;
+    uInt maxQ = (*this >> exceedLen) / (A >> exceedLen)[0];
+    uInt QA = maxQ * A;
+    if (*this >= QA)
+        return maxQ;
+    // realQ > maxQ * 100'000'000 / 100'000'001
+    uInt minQ = (maxQ << 8) / 100000001, midQA;
+    while (minQ + 1 < maxQ) {
+        uInt midQ = (maxQ + minQ) / 2;
+        midQA = midQ * A;
+        if (*this > midQA)
+            minQ = move(midQ);
+        else if (*this < midQA) // *this < maxQ * A
+            maxQ = move(midQ);
+        else
+            return midQ;
+    }
+    return minQ;
 }
 
 /** @return largest (2^n, n) that 2^n <= *this */
@@ -373,7 +408,7 @@ pair<uInt, uint64_t> uInt::approxExp2() const
     uint32_t firstDigit = num_.back() / EXP10_[i];
     // use log, error: -1~0
     uint32_t power = LOG2_[firstDigit] + (LENL_ * (size_() - 1) + i) * LOG2_[10];
-    uInt expo = math::exp2(power), expo2 = expo * 2;
+    uInt expo = exp2(power), expo2 = expo * 2;
     if (*this < expo2)
         return pair<uInt, uint32_t>(expo, power);
     return pair<uInt, uint32_t>(expo2, power + 1);

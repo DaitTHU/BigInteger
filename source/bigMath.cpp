@@ -1,6 +1,5 @@
 #include "bigMath.h"
 using namespace std;
-using namespace math;
 
 uInt exp2(const uInt& N)
 {
@@ -20,12 +19,12 @@ uInt exp2(const uInt& N)
     return power == n ? expo : expo * exp_2[n - power];
 }
 
-tuple<Int, Int, uInt> exgcd(const uInt& A, const uInt& B)
+tuple<uInt, uInt, uInt> exgcd(const uInt& A, const uInt& B)
 {
     if (B == 0)
-        return tuple<Int, Int, uInt>(1, 0, A);
-    auto gcdTuple = math::exgcd(B, A % B);
-    return tuple<Int, Int, uInt>(get<1>(gcdTuple),
+        return tuple<uInt, uInt, uInt>(1, 0, A);
+    auto gcdTuple = exgcd(B, A % B);
+    return tuple<uInt, uInt, uInt>(get<1>(gcdTuple),
         get<0>(gcdTuple) - A / B * get<1>(gcdTuple), get<2>(gcdTuple));
 }
 
@@ -80,8 +79,8 @@ uInt combination(const uInt& N, const uInt& k)
     else if (k > N)
         return uInt(0);
     else if (k * 2 > N)
-        return math::combination(N, N - k);
-    uInt Ank = math::permutation(N, k);
+        return combination(N, N - k);
+    uInt Ank = permutation(N, k);
     if (k <= 12)
         return Ank / factorial(k);
     for (unsigned i = uint32_t(k); i > 12; --i)

@@ -16,3 +16,6 @@ w
 
 # use valgrind
 log
+
+# paper
+*.pdf
