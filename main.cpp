@@ -99,9 +99,8 @@ int main()
 	cout << c << endl << (c << 100) << endl;
 	 */
 
-	for (size_t i = 0; i <= 10;++i)
-		if (i & 1 ^ 1)
-			cout << i << " ";
+	for (unsigned n = 1; n <= 30; ++n)
+		cout << n << ": " << ~fibonacci(n) << ": " << fibonacci(n) << endl;
 
 	/*
 	for (unsigned i = 0; i < 100; i += 1)

@@ -32,7 +32,7 @@ public:
     explicit operator uint32_t() const { return num_[0]; }
     explicit operator uint64_t() const;
     explicit operator std::string() const { return toString(); }
-    explicit operator bool() const { return size_() > 1 || num_[0] > 0; } // != 0
+    explicit operator bool() const { return num_.back() > 0; } // != 0
     // basic: =, <, ==, +=, -=,...
     uInt& operator=(const uInt& A) { num_ = A.num_; return *this; }
     uInt& operator=(uInt&& A) { num_ = std::move(A.num_); return *this; }
@@ -47,6 +47,7 @@ public:
     uInt& operator^=(const uInt& A);
     uInt& operator>>=(const std::size_t& n);
     uInt& operator<<=(const std::size_t& n);
+    bool operator|(const uInt& A) const;
     uInt& operator&=(const uInt& A) = delete;
     uInt& operator|=(const uInt& A) = delete;
     // similar to the basic
@@ -71,8 +72,6 @@ public:
     uInt operator<<(const std::size_t& n) { return uInt(*this) <<= n; }
     uInt operator>>(const uInt& A) const { return uInt(*this) >>= A; }
     uInt operator<<(const uInt& A) const { return uInt(*this) <<= A; }
-    std::pair<uInt, uInt> operator&(const uInt& A) const { return std::make_pair(*this, A); }
-    bool operator|(const uInt& A) const { return !bool(*this % A); }
     uInt operator()(const uInt& N, const bool& NthRoot) const;
     // right
     friend bool operator<(const uint64_t& n, const uInt& A) { return A > n; }
@@ -89,6 +88,7 @@ public:
     friend uInt operator^(const uint64_t& n, const uInt& A) { return uInt(n) ^ A; }
     friend uInt operator>>(const uint64_t& n, const uInt& A) { return uInt(n) >> A; }
     friend uInt operator<<(const uint64_t& n, const uInt& A) { return uInt(n) << A; }
+    friend bool operator|(const uint64_t& n, const uInt& A);
     // ++/--
     uInt& operator++() { return *this += 1; }
     uInt& operator++(int) { return *this += 1; } // may change, i don't konw.
@@ -115,6 +115,7 @@ protected:
     // restricted constructor
     uInt(const std::vector<uint32_t>& n) : num_(n) {}
     uInt(std::vector<uint32_t>&& n) : num_(std::move(n)) {}
+    std::pair<uInt, uInt> operator&(const uInt& A) const { return std::make_pair(*this, A); }
     uint32_t operator[](const uint32_t& i) const { return num_[i]; }
     std::size_t size_() const { return num_.size(); }
     void normalize_();

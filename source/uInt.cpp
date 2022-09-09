@@ -232,6 +232,22 @@ uInt& uInt::operator<<=(const size_t& n)
     return *this;
 }
 
+bool uInt::operator|(const uInt& A) const
+{
+    if (*this == 2)
+        return A[0] & 1 == 0;
+    return A % *this == 0;
+}
+
+bool operator|(const uint64_t& n, const uInt& A)
+{
+    if (n == 2)
+        return A[0] & 1 == 0;
+    else if (n < uInt::MAXL_)
+        return A % n == 0;
+    return A % uInt(n) == 0;
+}
+
 ostream& operator<<(ostream& os, const uInt& A)
 {
     if (uInt::interval_ == 3) // this is really a piece of sheet!
