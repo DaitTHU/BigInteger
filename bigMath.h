@@ -4,17 +4,20 @@
 #include <tuple>
 
 //namespace math {
-    /** @return 2^A */
-    uInt exp2(const uInt& N);
+    /** @return 2^n */
+    inline uInt exp2(const std::size_t& n) { return exp2(uInt(n)); }
 
     /** @return 2^n */
     inline uInt exp10(const std::size_t& n) { return exp10(uInt(n)); }
 
     /** @return largest 2^n that <= A */
-    inline uInt maxExp2(const uInt& A) { return A.approxExp2().first; }
+    inline uInt maxExp2(const uInt& A) { return exp2Floor(A).first; }
 
     /** @return largest n that 2^n <= A */
-    inline uInt log2(const uInt& A) { return A.approxExp2().second; }
+    inline uInt log2(const uInt& A) { return exp2Floor(A).second; }
+
+    /** @return largest n that 10^n <= A */
+    inline uInt log10(const uInt& A) { return A.length() - 1; }
 
     /** @return the square root of A */
     inline uInt sqrt(const uInt& A) { return ~A; }

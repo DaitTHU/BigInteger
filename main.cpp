@@ -99,8 +99,8 @@ int main()
 	cout << c << endl << (c << 100) << endl;
 	 */
 
-	for (unsigned n = 1; n <= 30; ++n)
-		cout << n << ": " << ~fibonacci(n) << ": " << fibonacci(n) << endl;
+	for (unsigned n = 10; n <= 1000; n += 10)
+		cout << n << ": " << fibonacci(n).sciNote() << endl;
 
 	/*
 	for (unsigned i = 0; i < 100; i += 1)

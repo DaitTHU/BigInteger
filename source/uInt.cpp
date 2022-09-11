@@ -8,8 +8,12 @@ using namespace std;
 
 static const float LOG2_[] = {
     0, 0, 1, 1.58496, 2, 2.32193, 2.58496, 2.80735, 3, 3.16993, 3.32193 };
+static const uint32_t EXP2_[] = {
+    1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768,
+    65536, 131072, 262144, 524288, 1048576, 2097152, 4194304, 8388608, 16777216,
+    33554432, 67108864, 134217728, 268435456, 536'870'912 };
 static const uint32_t EXP10_[] = {
-    1, 10, 100, 1'000, 10'000, 100'000, 1'000'000, 10'000'000, 100'000'000, 1'000'000'000 };
+    1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000, 1'000'000'000 };
 static const char ALPHABET[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
 char uInt::delimiter_ = ',';
@@ -363,7 +367,7 @@ pair<uInt, uInt> uInt::divmod(const uInt& A) const
     uInt maxQ = (*this >> exceedLen) / (A >> exceedLen)[0];
     uInt QA = maxQ * A;
     if (*this >= QA)
-        return pair<uInt, uInt>(maxQ, *this - QA);
+        return pair<uInt, uInt>(move(maxQ), *this - QA);
     // realQ > maxQ * 100'000'000 / 100'000'001
     uInt minQ = (maxQ << 8) / 100000001, midQA;
     while (minQ + 1 < maxQ) {
@@ -374,9 +378,9 @@ pair<uInt, uInt> uInt::divmod(const uInt& A) const
         else if (*this < midQA) // *this < maxQ * A
             maxQ = move(midQ);
         else
-            return pair<uInt, uInt>(midQ, 0);
+            return pair<uInt, uInt>(move(midQ), 0);
     }
-    return pair<uInt, uInt>(minQ, *this - minQ * A);
+    return pair<uInt, uInt>(move(minQ), *this - minQ * A);
 }
 
 uInt uInt::coarseDiv(const uInt& A, const size_t& _exactDigit) const
@@ -414,20 +418,36 @@ uInt uInt::coarseDiv(const uInt& A, const size_t& _exactDigit) const
     return minQ;
 }
 
-/** @return largest (2^n, n) that 2^n <= *this */
-pair<uInt, uint64_t> uInt::approxExp2() const
+/** @return largest (2^n, n) that 2^n <= N */
+pair<uInt, uint64_t> exp2Floor(const uInt& N)
 {
-    if (*this == 0)
+    if (N == 0)
         return pair<uInt, uint32_t>(0, 0);
     size_t i = 0;
-    for (;EXP10_[i + 1] <= num_.back();++i);
-    uint32_t firstDigit = num_.back() / EXP10_[i];
+    while (EXP10_[i + 1] <= N.num_.back())
+        ++i;
+    uint32_t firstDigit = N.num_.back() / EXP10_[i];
     // use log, error: -1~0
-    uint32_t power = LOG2_[firstDigit] + (LENL_ * (size_() - 1) + i) * LOG2_[10];
+    uint32_t power = LOG2_[firstDigit] +
+        (uInt::LENL_ * (N.size_() - 1) + i) * LOG2_[10];
     uInt expo = exp2(power), expo2 = expo * 2;
-    if (*this < expo2)
-        return pair<uInt, uint32_t>(expo, power);
-    return pair<uInt, uint32_t>(expo2, power + 1);
+    if (N < expo2)
+        return pair<uInt, uint32_t>(move(expo), power);
+    return pair<uInt, uint32_t>(move(expo2), power + 1);
+}
+
+uInt exp2(const uInt& N)
+{
+    auto n = static_cast<size_t>(N);
+    if (n < 30)
+        return uInt(EXP2_[n]);
+    uInt expo = uInt(EXP2_[29]) * 2;
+    size_t power = 30;
+    for (; power * 2 <= n; power *= 2)
+        expo *= expo;
+    for (; power + 29 <= n; power += 29)
+        expo *= EXP2_[29];
+    return power == n ? expo : expo * EXP2_[n - power];
 }
 
 uInt exp10(const uInt& N)
@@ -446,13 +466,13 @@ size_t uInt::length(const unsigned& _base) const
         for (; EXP10_[i] <= num_.back(); ++i);
         return LENL_ * (size_() - 1) + i;
     case 2:
-        return 1 + approxExp2().second;
+        return 1 + exp2Floor(*this).second;
     case 4:
-        return 1 + approxExp2().second / 2;
+        return 1 + exp2Floor(*this).second / 2;
     case 8:
-        return 1 + approxExp2().second / 3;
+        return 1 + exp2Floor(*this).second / 3;
     case 16:
-        return 1 + approxExp2().second / 4;
+        return 1 + exp2Floor(*this).second / 4;
     default:
         uInt thisCopy = *this / _base;
         for (; bool(thisCopy); ++i)

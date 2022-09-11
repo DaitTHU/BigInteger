@@ -102,7 +102,8 @@ public:
     bool between(const uInt& A, const uInt& B, const bool& includeA = true, const bool& includeB = false) const;
     std::pair<uInt, uInt> divmod(const uInt& A) const;
     uInt coarseDiv(const uInt& A, const std::size_t& _exactDigit = LEN_) const;
-    std::pair<uInt, uint64_t> approxExp2() const;
+    friend std::pair<uInt, uint64_t> exp2Floor(const uInt& N);
+    friend uInt exp2(const uInt& N);
     friend uInt exp10(const uInt& N);
     std::size_t length(const unsigned& _base = 10) const;
     std::string toString(const unsigned& _base = 10, const bool& _suffix = false) const;
@@ -176,21 +177,18 @@ public:
     friend bool operator<=(const int64_t n, const Int& A) { return A >= n; }
     friend bool operator>=(const int64_t n, const Int& A) { return A <= n; }
     friend bool operator!=(const int64_t n, const Int& A) { return A != n; }
-    // right binary arithmetic
-    // friend Int operator+(const int32_t n, const Int& A) { return A + n; }
-    // friend Int operator-(const int32_t n, const Int& A) { return Int(n) - A; }
-    // friend Int operator*(const int32_t n, const Int& A) { return A * n; }
-    // friend Int operator/(const int32_t n, const Int& A) { return Int(n) / A; }
-    // friend Int operator%(const int32_t n, const Int& A) { return Int(n) % A; }
-    // friend Int operator^(const int32_t n, const Int& A) { return Int(n) ^ A; }
-    // arithmetic-assignment
-    // Int& operator+=(const Int& A) { return *this = *this + A; }
-    // Int& operator-=(const Int& A) { return *this = *this - A; }
-    // Int& operator*=(const Int& A) { return *this = *this * A; }
-    // Int& operator/=(const Int& A) { return *this = *this / A; }
-    // Int& operator%=(const Int& A) { return *this = *this % A; }
-    // Int& operator^=(const Int& A) { return *this = *this ^ A; }
-    // ++/--
+    Int operator+(const Int& A) const { return Int(*this) += A; }
+    Int operator-(const Int& A) const { return Int(*this) -= A; }
+    Int operator*(const Int& A) const { return Int(*this) *= A; }
+    Int operator/(const Int& A) const { return Int(*this) /= A; }
+    Int operator%(const Int& A) const { return Int(*this) %= A; }
+    Int operator^(const Int& A) const { return Int(*this) ^= A; }
+    friend Int operator+(const int32_t n, const Int& A) { return A + n; }
+    friend Int operator-(const int32_t n, const Int& A) { return Int(n) - A; }
+    friend Int operator*(const int32_t n, const Int& A) { return A * n; }
+    friend Int operator/(const int32_t n, const Int& A) { return Int(n) / A; }
+    friend Int operator%(const int32_t n, const Int& A) { return Int(n) % A; }
+    friend Int operator^(const int32_t n, const Int& A) { return Int(n) ^ A; }
     Int& operator++() { return *this += 1; }
     Int& operator++(int) { return *this += 1; }
     Int& operator--() { return *this -= 1; }
