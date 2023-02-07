@@ -8,6 +8,7 @@ makefile
 test
 test.*
 *.test
+*.reserved
 
 *.bak
 

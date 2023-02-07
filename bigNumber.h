@@ -132,39 +132,39 @@ private:
 class Int : public uInt
 {
 protected:
-    bool p; // positive
-    Int(const std::vector<uint32_t>& n, bool _p = true) : uInt(n), p(_p) {}
-    Int(std::vector<uint32_t>&& n, bool _p = true) : uInt(std::move(n)), p(_p) {}
+    bool p_; // positive
+    Int(const std::vector<uint32_t>& n, bool p = true) : uInt(n), p_(p) {}
+    Int(std::vector<uint32_t>&& n, bool p = true) : uInt(std::move(n)), p_(p) {}
 
 public:
-    Int(const int64_t& n = 0) : uInt(abs(n)), p(n >= 0) {}
-    Int(const std::string& n) : uInt(n), p(n[0] != '-') {}
-    Int(const uInt& A, bool _p = true) : uInt(A), p(_p) {}
-    Int(uInt&& A, bool _p = true) : uInt(A), p(_p) {}
+    Int(const int64_t& n = 0) : uInt(abs(n)), p_(n >= 0) {}
+    Int(const std::string& n) : uInt(n), p_(n[0] != '-') {}
+    Int(const uInt& A, bool p = true) : uInt(A), p_(p) {}
+    Int(uInt&& A, bool p = true) : uInt(A), p_(p) {}
     Int(const Int& A) = default;
     Int(Int&& A) = default;
     virtual ~Int() = default;
     // assignment
-    Int& operator=(const Int& A) { num_ = A.num_, p = A.p; return *this; }
-    Int& operator=(Int&& A) { num_ = std::move(A.num_), p = A.p; return *this; }
+    Int& operator=(const Int& A) { num_ = A.num_, p_ = A.p_; return *this; }
+    Int& operator=(Int&& A) { num_ = std::move(A.num_), p_ = A.p_; return *this; }
     // relational
-    bool operator>(const Int& A) const { return p == A.p ? p ? uInt::operator>(A) : uInt::operator<(A) : p; }
+    bool operator>(const Int& A) const { return p_ == A.p_ ? p_ ? uInt::operator>(A) : uInt::operator<(A) : p_; }
     bool operator<(const Int& A) const { return A > *this; }
-    bool operator==(const Int& A) const { return num_ == A.num_ && p == A.p; }
+    bool operator==(const Int& A) const { return num_ == A.num_ && p_ == A.p_; }
     bool operator<=(const Int& A) const { return !operator>(A); }
     bool operator>=(const Int& A) const { return !operator<(A); }
     bool operator!=(const Int& A) const { return !operator==(A); }
     // unary arithmetic
     Int operator+() const { return Int(num_); } // abs
-    Int operator-() const { return Int(num_, !p); }
+    Int operator-() const { return Int(num_, !p_); }
     Int operator~() = delete;
     Int operator!() = delete;
-    //  binary arithmetic
+    // binary arithmetic
     Int& operator+=(const Int& A);
     Int& operator-=(const Int& A);
-    Int& operator*=(const Int& A) { p = (p == A.p), uInt::operator*=(A); return *this; }
-    Int& operator/=(const Int& A) { p = (p == A.p), uInt::operator/=(A); return *this; } // -A / B = -(A / B)
-    Int& operator%=(const Int& A) { uInt::operator%=(A); return *this; }                 // A = A / B * B + A % B
+    Int& operator*=(const Int& A) { p_ = (p_ == A.p_), uInt::operator*=(A); return *this; }
+    Int& operator/=(const Int& A) { p_ = (p_ == A.p_), uInt::operator/=(A); return *this; } // -A / B = -(A / B)
+    Int& operator%=(const Int& A) { uInt::operator%=(A); return *this; } // A = A / B * B + A % B
     Int& operator^=(const Int& A);
     Int& operator>>=(const ssize_t& n);
     Int& operator<<=(const ssize_t& n);
@@ -196,36 +196,39 @@ public:
     // I/O stream
     friend std::ostream& operator<<(std::ostream& os, const Int& A);
     friend std::istream& operator>>(std::istream& is, Int& A);
+    // other
+    bool between(const Int& A, const Int& B, const bool& includeA = true, const bool& includeB = false) const;
+    std::string toString(const unsigned& _base = 10, const bool& _suffix = false) const;
+    std::string sciNote(const std::size_t& _deciLength = LEN_) const;
+    Int subInt(const std::size_t& _beginDigit = 0, const std::size_t& _endDigit = 0xFFFFFFFFFFFFFFFF) const;
 };
 
 class Frac // Fraction
 {
 protected:
-    Int nume = 0;  // numerator
-    uInt deno = 1; // denominator
+    Int nume_ = 0;  // numerator
+    uInt deno_ = 1; // denominator
 
 public:
-    Frac() {}
-    Frac(const int32_t& n) : nume(n), deno(1) {}
-    Frac(const Int& _nume, const uInt& _deno = 1) : nume(_nume), deno(_deno) {}
+    Frac(const Int& nume = 0, const uInt& deno = 1);
     // Frac(Real n);
-    Frac(const std::string _f);
+    Frac(const std::string& f);
     Frac(const Frac& A) = default;
     Frac(Frac&& A) = default;
     ~Frac() = default;
     // assignment
-    Frac& operator=(const Frac& A) { nume = A.nume, deno = A.deno; return *this; }
-    Frac& operator=(Frac&& A) { nume = std::move(A.nume), deno = std::move(A.deno); return *this; }
+    Frac& operator=(const Frac& A) { nume_ = A.nume_, deno_ = A.deno_; return *this; }
+    Frac& operator=(Frac&& A) { nume_ = std::move(A.nume_), deno_ = std::move(A.deno_); return *this; }
     // relational
-    bool operator<(const Frac& A) const { return nume * A.deno < A.nume* deno; };
+    bool operator<(const Frac& A) const { return nume_ * A.deno_ < A.nume_* deno_; };
     bool operator>(const Frac& A) const { return A < *this; }
-    bool operator==(const Frac& A) const { return nume == A.nume && deno == A.deno; }
+    bool operator==(const Frac& A) const { return nume_ == A.nume_ && deno_ == A.deno_; }
     bool operator<=(const Frac& A) const { return !operator>(A); }
     bool operator>=(const Frac& A) const { return !operator<(A); }
     bool operator!=(const Frac& A) const { return !operator==(A); }
     // unary arithmetic
-    Frac operator+() const { return Frac(+nume, deno); } // abs
-    Frac operator-() const { return Frac(-nume, deno); }
+    Frac operator+() const { return Frac(+nume_, deno_); } // abs
+    Frac operator-() const { return Frac(-nume_, deno_); }
     Frac operator~() = delete;
     // binary arithmetic
     Frac operator+(const Frac& A) const;
@@ -244,33 +247,34 @@ public:
     Frac& operator%=(const Frac& A) { return *this = *this % A; }
     Frac& operator^=(const Frac& A) { return *this = *this ^ A; }
     // ++/--
-    Frac operator++() { return *this += 1; }
-    Frac operator++(int) { return *this += 1; } // may change, i don't konw.
-    Frac operator--() { return *this -= 1; }
-    Frac operator--(int) { return *this -= 1; }
+    // Frac operator++() { return *this += 1; }
+    // Frac operator++(int) { return *this += 1; } // may change, i don't konw.
+    // Frac operator--() { return *this -= 1; }
+    // Frac operator--(int) { return *this -= 1; }
     // I/O stream
     friend std::ostream& operator<<(std::ostream& os, const Frac& A);
     friend std::istream& operator>>(std::istream& is, Frac& A);
 };
 
-class Real
+#ifdef REAL_COMPLETED_
+class Real : public Int
 {
 protected:
-    Int lit;
-    std::size_t dot = 0;
+    std::size_t dot_ = 0;
+    Real(const Int& n, const std::size_t& d) : Int(n), dot_(d) {}
+    Real(Int&& n, const std::size_t& d) : Int(std::move(n)), dot_(d) {}
 
 public:
     Real() {}
     // Real(const int32_t& _r) : Int(_r) {}
-    Real(const double& _r) {}
-    Real(const std::string& _r);
-    // Real(const Int& A) : Int(A), dec(_d) {}
+    Real(const double& r) {}
+    Real(const std::string& r);
     Real(const Real& A) = default;
     Real(Real&& A) = default;
     ~Real() = default;
     // assignment
-    Real& operator=(const Real& A); // { num_ = A.num_, p = A.p, dot = A.dot; return *this; }
-    Real& operator=(Real&& A); // { num_ = move(A.num_), p = A.p, dot = A.dot; return *this; }
+    Real& operator=(const Real& A) { Int::operator=(A), dot_ = A.dot_; return *this; }
+    Real& operator=(Real&& A) { Int::operator=(std::move(A)), dot_ = A.dot_; return *this; }
     // relational
     bool operator<(const Real& A) const;
     bool operator>(const Real& A) const { return A < *this; }
@@ -280,8 +284,8 @@ public:
     bool operator!=(const Real& A) const { return !operator==(A); }
     // unary arithmetic
     // Real operator+() const { return operator<(0) ? 0 - *this : *this; } // abs
-    // Real operator-() const {}
-    Real operator~() = delete;
+    Real operator-() const { return Real(Int::operator-(), dot_); }
+    Real operator~();
     // binary arithmetic
     Real operator+(const Real& A) const;
     Real operator-(const Real& A) const;
@@ -311,62 +315,66 @@ public:
 class Complex
 {
 public:
-    Real a, b; // a + ib
-    Complex(Real _a = 0, Real _b = 0) : a(_a), b(_b) {}
-    Complex(const std::string& _c);
+    Real a_, b_; // a + ib
+    Complex(Real a = 0, Real b = 0) : a_(a), b_(b) {}
+    Complex(const std::string& c);
     Complex(const Complex& C) = default;
     Complex(Complex&& C) = default;
     ~Complex() = default;
     // assignment
-    Complex& operator=(const Complex& C);
-    Complex& operator=(Complex&& C);
+    Complex& operator=(const Complex& C) { a_ = C.a_, b_ = C.b_; return *this; }
+    Complex& operator=(Complex&& C) { a_ = std::move(C.a_), b_ = std::move(C.b_); return *this; }
     // relational
     bool operator<(const Complex& C) = delete;
     bool operator>(const Complex& C) = delete;
-    bool operator==(const Complex& C) const { return a == C.a && b == C.b; }
+    bool operator==(const Complex& C) const { return a_ == C.a_ && b_ == C.b_; }
     bool operator<=(const Complex& C) = delete;
     bool operator>=(const Complex& C) = delete;
-    bool operator!=(const Complex& C) const { return !operator==(C); }
+    bool operator!=(const Complex& C) const { return !(*this == C); }
     // unary arithmetic
     Complex operator+();
-    Complex operator-();
-    Complex operator~() = delete;
-    // binary arithmetic
-    Complex operator+(const Complex& C) const { return Complex(a + C.a, b + C.b); }
-    Complex operator-(const Complex& C) const { return Complex(a - C.a, b - C.b); }
-    Complex operator*(const Complex& C) const { return Complex(a * C.a - b * C.b, a * C.b + b * C.a); }
-    Complex operator/(const Real& c) const { return Complex(a / c, b / c); }
-    Complex operator/(const Complex& C) const; // { return Complex(a * C.a + b * C.b, b * C.a - a * C.b) / C.norm2(); }
-    Complex operator%(const Complex& C) = delete;
-    Complex operator^(const Complex& C) const;
-    Complex operator&(const Complex& C) const = delete;
-    Complex operator|(const Complex& C) const = delete;
+    Complex operator-() const { return Complex(-a_, -b_); }
+    Complex operator~() const { return Complex(a_, -b_); }
+    Complex& operator+=(const Complex& C) { a_ += C.a_, b_ += C.b_; return *this; }
+    Complex& operator-=(const Complex& C) { a_ -= C.a_, b_ -= C.b_; return *this; }
+    Complex& operator*=(const Real& R) { a_ *= R, b_ *= R; return *this; }
+    Complex& operator*=(const Complex& C);
+    Complex& operator/=(const Real& R) { a_ /= R, b_ /= R; return *this; }
+    Complex& operator/=(const Complex& C);
+    Complex& operator%=(const Complex& C) = delete;
+    Complex& operator^=(const Complex& C);
+    Complex& operator>>=(const ssize_t& n) = delete;
+    Complex& operator<<=(const ssize_t& n) = delete;
+    Complex& operator&=(const Complex& C) = delete;
+    Complex& operator|=(const Complex& C) = delete;
     // other
-    // Real norm2() const { return a ^ 2 + b ^ 2; }
+    Real norm2() const { return a_ * a_ + b_ * b_; }
+    Real norm() const { return ~norm2(); }
+    Real arg() const { return b_ / a_; } // arctan
 };
 
-static const class Inf
+class Inf
 {
 private:
-    bool p;             // postive
+    bool p_;             // postive
     double order = 1.0; // infinity order
-    Inf(bool _p, double _o) : p(_p), order(_o) {}
+    Inf(bool p, double _o) : p_(p), order(_o) {}
 
 public:
-    Inf(bool positive = true) : p(positive) {}
+    Inf(bool positive = true) : p_(positive) {}
     template <typename T>
-    Inf(const T& A) : p(A > 0), order(0) { if (A == 0) std::cerr << "ERROR: assign 0 to infinity" << std::endl; }
+    Inf(const T& A) : p_(A > 0), order(0) { if (A == 0) std::cerr << "ERROR: assign 0 to infinity" << std::endl; }
     Inf(const Inf& _inf) = default;
     Inf(Inf&& _inf) = default;
     ~Inf() = default;
-    Inf& operator=(const Inf& _inf) { p = _inf.p, order = _inf.order; return *this; }
-    Inf operator+() const { return Inf(p, order); }
-    Inf operator-() const { return Inf(-p, order); }
-    Inf operator~() const { return Inf(p, -order); }
+    Inf& operator=(const Inf& _inf) { p_ = _inf.p_, order = _inf.order; return *this; }
+    Inf operator+() const { return Inf(p_, order); }
+    Inf operator-() const { return Inf(-p_, order); }
+    Inf operator~() const { return Inf(p_, -order); }
     template <typename T>
-    bool operator>(const T& A) { return p; }
+    bool operator>(const T& A) { return p_; }
     template <typename T>
-    friend bool operator>(const T& A, const Inf& _inf) { return !_inf.p; }
+    friend bool operator>(const T& A, const Inf& _inf) { return !_inf.p_; }
     friend bool operator>(const Complex& A, const Inf& _inf) = delete;
     bool operator>(const Complex& A) = delete;
     bool operator>(const Inf& _inf) = delete;
@@ -416,8 +424,8 @@ public:
     Inf& operator++(int) { return *this; }
     Inf& operator--() { return *this; }
     Inf& operator--(int) { return *this; }
-    friend std::ostream& operator<<(std::ostream& os, const Inf& _inf) { os << (_inf.p ? "inf" : "-inf"); return os; }
-} INF(true);
+    friend std::ostream& operator<<(std::ostream& os, const Inf& _inf) { os << (_inf.p_ ? "inf" : "-inf"); return os; }
+};
 
 template <typename F = Real> // Real, Complex
 class Poly					 // Polynomial
@@ -434,6 +442,7 @@ public:
     F operator()(const F& x, const unsigned& dOrder = 0) const; // f(x)
     F& operator[](const unsigned& i) { return coef[i]; }
 };
+#endif // real completed
 
 // namespace Constant
 

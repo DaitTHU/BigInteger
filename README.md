@@ -33,9 +33,10 @@ uInt largeNegative = -100; // 18446744073709551516
 ```cpp
 uInt positiveInt = std::string("-2718"); // 2718
 uInt hilariousDemo("-+-+-+-1414213562"); // 1414213562
-// uInt errorDemo0 = "2275191666"        // string != const char*
-// uInt errorDemo1("114514+1919810")     // Constructors don't do math
-// uInt errorDemo2("0xABCDEF")           // only base-10 readable
+// uInt errorDemo0 = "2275191666";       // string != const char*
+uInt feasibleDemo0 = "2275191666"s;
+// uInt errorDemo1("114514+1919810");    // Constructors don't do math
+// uInt errorDemo2("0xABCDEF");          // only base-10 readable
 ```
 
 2. **Comparison:** `uInt`s are comparable (`<, >, ==,...`). Moreover, If you perfer `a < x < b` like Python, you can use `uInt::between(A, B, includeA = true, includeB = false)`.
@@ -123,7 +124,7 @@ std::cout << b << std::endl;
 
 more functions to be continued...
 
-### `Int` class (TODO)
+### `Int` class
 
 almost same as `uInt` class, adding a sign.
 
@@ -133,26 +134,28 @@ Fraction, consisting of `Int` numerator and `uInt` denominator, also, you can cr
 
 (quiet like `Fraction package` in `Python`, lol...)
 
-### `Real` class (TODO)
+### ~~`Real` class (TODO)~~
 
-consisting of `Int` as the integer part and `vector<int>` as the decimal part.
+~~consisting of `Int` as the integer part and `vector<int>` as the decimal part.~~
 
-### `Complex` class (TODO)
+### ~~`Complex` class (TODO)~~
 
-consisting of two `Real` as the real part and imaginary part.
+~~consisting of two `Real` as the real part and imaginary part.~~
 
-### `Inf` class
+### ~~`Inf` class~~
 
-Infinity, consisiting of sign and order. Numbers could compare or operator with `Inf`. Const `INF` is provided.
+~~Infinity, consisiting of sign and order. Numbers could compare or operator with `Inf`. Const `INF` is provided.~~
 
+<!--
 ```cpp
 b < INF; // false
 c + INF; // INF
 ```
+-->
 
-### `Poly` class (TODO)
+### ~~`Poly` class (TODO)~~
 
-Polynomial, consisting of multiple `Real` coefficients.
+~~Polynomial, consisting of multiple `Real` coefficients.~~
 
 ## `bigMath.h`
 

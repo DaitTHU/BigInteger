@@ -86,3 +86,18 @@ uInt combination(const uInt& N, const uInt& k)
         Ank /= i;
     return Ank / 479001600; // 12!
 }
+
+#ifdef Real_Completed_
+Real sin(Real theta)
+{
+    if (theta > PI)
+        do {
+            theta -= PI * 2;
+        } while (theta <= PI);
+    else if (theta <= -PI)
+        do {
+            theta += PI * 2;
+        } while (theta > -PI);
+    
+}
+#endif

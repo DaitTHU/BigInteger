@@ -45,6 +45,23 @@
     uInt permutation(const uInt& n, const uInt& k);
 
     uInt combination(const uInt& n, const uInt& k);
+
+#ifdef REAL_COMPLETED_
+    Real exp(Real a);
+
+    Real ln(Real a);
+
+    static const Real PI("3.1415926535797932384626");
+
+    Real sin(Real theta);
+
+    Real cos(Real theta);
+    
+    Real tan(Real theta);
+
+    Real arcsin(Real a);
+#endif // real completed
+
 //} // namespace math
 
 #endif
